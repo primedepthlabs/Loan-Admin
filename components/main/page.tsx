@@ -1,6 +1,15 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Users, IndianRupee, Menu, X, LogOut, QrCode,Edit } from "lucide-react";
+import {
+  Users,
+  IndianRupee,
+  Menu,
+  X,
+  LogOut,
+  QrCode,
+  Edit,
+  ClipboardList,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { User } from "@supabase/supabase-js";
@@ -8,6 +17,7 @@ import UsersPage from "../Users/page";
 import AdminLoanManager from "../Loan-Options/page";
 import AdminPaymentSettings from "../Payment-Management/page";
 import AdminLoanSettings from "../Loan-Configuration/page";
+import LoanApplications from "../Loan-Requests/page";
 interface SidebarProps {
   activeSection: string;
   setActiveSection: (section: string) => void;
@@ -44,7 +54,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       id: "loansettings",
       label: "Loan Configration",
-      icon:Edit ,
+      icon: Edit,
+    },
+    {
+      id: "loanrequests",
+      label: "Loan Requests",
+      icon: ClipboardList,
     },
   ];
 
@@ -173,6 +188,8 @@ const Main = () => {
         return <AdminPaymentSettings />;
       case "loansettings":
         return <AdminLoanSettings />;
+      case "loanrequests":
+        return <LoanApplications />;
       default:
         return <UsersPage />;
     }

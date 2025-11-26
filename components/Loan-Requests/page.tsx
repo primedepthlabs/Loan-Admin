@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { NextPage } from "next";
 import { supabase } from "@/lib/supabaseClient";
 
+// ... (keep all the icon components the same)
+
 const SearchIcon = () => (
   <svg
     className="w-5 h-5"
@@ -221,15 +223,7 @@ interface LoanApplication {
   updated_at: string;
   reviewed_at?: string;
   reviewer_notes?: string;
-  // User details (joined)
   users?: User;
-}
-
-interface ServiceResponse<T> {
-  success: boolean;
-  error?: string;
-  applications?: T[];
-  application?: T;
 }
 
 // Utility function to get proper image URL
@@ -240,39 +234,42 @@ const getImageUrl = (path: string): string => {
   return data.publicUrl;
 };
 
-// Service functions
 const loanApplicationService = {
-  getAllApplications: async (): Promise
-    ServiceResponse<LoanApplication>
-  > => {
+  getAllApplications: async () => {
     try {
-      const { data, error } = await supabase
+      // Get applications
+      const { data: applications, error: appError } = await supabase
         .from("loan_applications")
-        .select(
-          `
-          *,
-          users (
-            id,
-            name,
-            age,
-            email,
-            mobile_number,
-            aadhaar_front_photos,
-            aadhaar_back_photos,
-            pan_card_photos,
-            bank_passbook_photos,
-            passport_photo_urls,
-            kyc_status,
-            payment_status,
-            payment_screenshot_url,
-            payment_amount
-          )
-        `
-        )
+        .select("*")
         .order("applied_at", { ascending: false });
 
-      if (error) throw error;
-      return { success: true, applications: data || [] };
+      if (appError) throw appError;
+
+      // Get user IDs
+      const userIds = [
+        ...new Set(applications?.map((app) => app.user_id) || []),
+      ];
+
+      if (userIds.length === 0) {
+        return { success: true, applications: [] };
+      }
+
+      // Get users
+      const { data: users, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .in("auth_user_id", userIds);
+
+      if (userError) throw userError;
+
+      // Combine data
+      const result =
+        applications?.map((app) => ({
+          ...app,
+          users: users?.find((u) => u.auth_user_id === app.user_id) || null,
+        })) || [];
+
+      return { success: true, applications: result };
     } catch (error) {
       console.error("Get loan applications error:", error);
       return {
@@ -287,7 +284,7 @@ const loanApplicationService = {
     applicationId: string,
     newStatus: "approved" | "rejected" | "processing",
     reviewerNotes?: string
-  ): Promise<ServiceResponse<LoanApplication>> => {
+  ) => {
     try {
       const updateData: any = {
         status: newStatus,
@@ -296,34 +293,39 @@ const loanApplicationService = {
         reviewer_notes: reviewerNotes || null,
       };
 
-      const { data, error } = await supabase
+      // Update application
+      const { data: applications, error: appError } = await supabase
         .from("loan_applications")
         .update(updateData)
         .eq("id", applicationId)
-        .select(
-          `
-          *,
-          users (
-            id,
-            name,
-            age,
-            email,
-            mobile_number,
-            aadhaar_front_photos,
-            aadhaar_back_photos,
-            pan_card_photos,
-            bank_passbook_photos,
-            passport_photo_urls,
-            kyc_status,
-            payment_status,
-            payment_screenshot_url,
-            payment_amount
-          )
-        `
-        );
+        .select("*");
 
-      if (error) throw error;
-      return { success: true, application: data?.[0] };
+      if (appError) throw appError;
+
+      const application = applications?.[0];
+
+      if (!application) {
+        throw new Error("Application not found");
+      }
+
+      // Get user separately
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select(
+          "id, name, age, email, mobile_number, aadhaar_front_photos, aadhaar_back_photos, pan_card_photos, bank_passbook_photos, passport_photo_urls, kyc_status, payment_status, payment_screenshot_url, payment_amount"
+        )
+        .eq("id", application.user_id)
+        .single();
+
+      if (userError) throw userError;
+
+      return {
+        success: true,
+        application: {
+          ...application,
+          users: user,
+        },
+      };
     } catch (error) {
       console.error("Update application status error:", error);
       return { success: false, error: (error as Error).message };
@@ -356,7 +358,6 @@ const LoanApplications: NextPage = () => {
     new Set()
   );
 
-  // Load applications on component mount
   useEffect(() => {
     loadApplications();
   }, []);
@@ -437,7 +438,6 @@ const LoanApplications: NextPage = () => {
     setImageLoadErrors((prev) => new Set([...prev, imageSrc]));
   };
 
-  // Filter and search logic
   const filteredApplications = applications.filter((app) => {
     const user = app.users;
     const matchesSearch =
@@ -446,13 +446,11 @@ const LoanApplications: NextPage = () => {
       user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user?.mobile_number.includes(searchTerm);
 
-    const matchesFilter =
-      filterStatus === "all" || app.status === filterStatus;
+    const matchesFilter = filterStatus === "all" || app.status === filterStatus;
 
     return matchesSearch && matchesFilter;
   });
 
-  // Pagination
   const indexOfLastApplication = currentPage * applicationsPerPage;
   const indexOfFirstApplication = indexOfLastApplication - applicationsPerPage;
   const currentApplications = filteredApplications.slice(
@@ -818,7 +816,8 @@ const LoanApplications: NextPage = () => {
                           <div>
                             <p className="text-sm font-semibold text-yellow-600">
                               ₹{app.installment_amount.toLocaleString("en-IN")}{" "}
-                              / {app.payment_type === "weekly" ? "week" : "month"}
+                              /{" "}
+                              {app.payment_type === "weekly" ? "week" : "month"}
                             </p>
                             <p className="text-xs text-gray-500">
                               Total: ₹
@@ -835,12 +834,8 @@ const LoanApplications: NextPage = () => {
                           >
                             {getStatusIcon(app.users?.kyc_status || "pending")}
                             {app.users?.kyc_status
-                              ? app.users.kyc_status
-                                  .charAt(0)
-                                  .toUpperCase() +
-                                app.users.kyc_status
-                                  .slice(1)
-                                  .replace("_", " ")
+                              ? app.users.kyc_status.charAt(0).toUpperCase() +
+                                app.users.kyc_status.slice(1).replace("_", " ")
                               : "Pending"}
                           </span>
                         </td>
@@ -941,11 +936,10 @@ const LoanApplications: NextPage = () => {
         )}
       </div>
 
-      {/* Application Details Modal */}
+      {/* Application Details Modal - Continue in next message due to length */}
       {showApplicationModal && selectedApplication && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-6xl rounded-xl shadow-lg my-8 max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div>
                 <h2 className="text-xl font-semibold text-gray-800">
@@ -966,7 +960,6 @@ const LoanApplications: NextPage = () => {
               </button>
             </div>
 
-            {/* Modal Content */}
             <div className="p-6 space-y-6">
               {/* Loan Application Information */}
               <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-6">
@@ -988,8 +981,7 @@ const LoanApplications: NextPage = () => {
                       Loan Amount
                     </label>
                     <p className="text-gray-900 font-semibold text-lg">
-                      ₹
-                      {selectedApplication.loan_amount.toLocaleString("en-IN")}
+                      ₹{selectedApplication.loan_amount.toLocaleString("en-IN")}
                     </p>
                   </div>
                   <div>
