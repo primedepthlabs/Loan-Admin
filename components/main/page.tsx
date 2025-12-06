@@ -9,6 +9,16 @@ import {
   QrCode,
   Edit,
   ClipboardList,
+  EqualApproximatelyIcon,
+  Calendar1,
+  Calendar1Icon,
+  CalendarCheck,
+  ChartColumnDecreasing,
+  Layers,
+  LucidePhoneIncoming,
+  LucideCheckSquare,
+  TableOfContents,
+  Wallet,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -18,6 +28,13 @@ import AdminLoanManager from "../Loan-Options/page";
 import AdminPaymentSettings from "../Payment-Management/page";
 import AdminLoanSettings from "../Loan-Configuration/page";
 import LoanApplications from "../Loan-Requests/page";
+import EMIManagement from "../Emi-Management/page";
+import AdminAgentCourses from "../Agent-Courses/page";
+import CoursePayment from "../CoursePayment/page";
+import CourseUsersPage from "../../app/course-users/page";
+import ContentManagement from "../content-management/page";
+import WithdrawalApprovals from "../WithdrawalApprovals/page";
+import AdminNetworkViewPage from "../Users-Network/page";
 interface SidebarProps {
   activeSection: string;
   setActiveSection: (section: string) => void;
@@ -61,6 +78,41 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: "Loan Requests",
       icon: ClipboardList,
     },
+    {
+      id: "emimanager",
+      label: "EMI Management",
+      icon: CalendarCheck,
+    },
+    {
+      id: "agentcourses",
+      label: "Agent Courses",
+      icon: Layers,
+    },
+    {
+      id: "coursepayment",
+      label: "Course Payments",
+      icon: LucideCheckSquare,
+    },
+    {
+      id: "manageaccess",
+      label: "Manage Access",
+      icon: ChartColumnDecreasing,
+    },
+    {
+      id: "contentmanagement",
+      label: "Plan Resources",
+      icon: TableOfContents,
+    },
+    {
+      id: "withdrawalrequests",
+      label: "Withdrawal Requests",
+      icon: Wallet,
+    },
+    {
+      id: "networkview",
+      label: "User Network View",
+      icon: Wallet,
+    },
   ];
 
   const handleLogout = async () => {
@@ -74,7 +126,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform duration-300 ease-in-out flex flex-col ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -90,7 +141,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        {/* Navigation Menu */}
         <nav className="mt-2 flex-1">
           {menuItems.map((item) => {
             const IconComponent = item.icon;
@@ -112,9 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Bottom Section with User Info and Logout */}
         <div className="border-t">
-          {/* Logout Button */}
           <button
             onClick={handleLogout}
             className="w-full flex items-center px-4 py-3 text-left cursor-pointer hover:bg-red-50 text-red-600 hover:text-red-700"
@@ -125,7 +173,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Overlay for mobile */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-25 z-40 lg:hidden"
@@ -190,6 +237,20 @@ const Main = () => {
         return <AdminLoanSettings />;
       case "loanrequests":
         return <LoanApplications />;
+      case "emimanager":
+        return <EMIManagement />;
+      case "agentcourses":
+        return <AdminAgentCourses />;
+      case "coursepayment":
+        return <CoursePayment />;
+      case "manageaccess":
+        return <CourseUsersPage />;
+      case "contentmanagement":
+        return <ContentManagement />;
+      case "withdrawalrequests":
+        return <WithdrawalApprovals />;
+      case "networkview":
+        return <AdminNetworkViewPage />;
       default:
         return <UsersPage />;
     }

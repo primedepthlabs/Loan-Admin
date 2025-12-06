@@ -12,6 +12,7 @@ import {
   Settings,
   Percent,
   Calendar,
+  DollarSign,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -23,7 +24,8 @@ interface TenureOption {
 
 interface LoanConfiguration {
   id: string;
-  interest_rate: number;
+  disbursement_interest: number;
+  repayment_interest: number;
   tenure_options: TenureOption[];
   payment_type: "weekly" | "monthly";
   created_at: string;
@@ -36,7 +38,8 @@ interface SuccessNotificationProps {
 }
 
 const AdminLoanSettings: React.FC = () => {
-  const [interestRate, setInterestRate] = useState<string>("");
+  const [disbursementInterest, setDisbursementInterest] = useState<string>("");
+  const [repaymentInterest, setRepaymentInterest] = useState<string>("");
   const [paymentType, setPaymentType] = useState<"weekly" | "monthly">(
     "weekly"
   );
@@ -71,7 +74,8 @@ const AdminLoanSettings: React.FC = () => {
 
       if (data) {
         setCurrentSettings(data);
-        setInterestRate(data.interest_rate.toString());
+        setDisbursementInterest(data.disbursement_interest.toString());
+        setRepaymentInterest(data.repayment_interest.toString());
         setPaymentType(data.payment_type);
         setTenureOptions(data.tenure_options);
       }
@@ -122,13 +126,23 @@ const AdminLoanSettings: React.FC = () => {
   };
 
   const validateSettings = (): boolean => {
-    if (!interestRate || parseFloat(interestRate) <= 0) {
-      setError("Please enter a valid interest rate (greater than 0)");
+    if (!disbursementInterest || parseFloat(disbursementInterest) < 0) {
+      setError("Please enter a valid disbursement interest (0 or greater)");
       return false;
     }
 
-    if (parseFloat(interestRate) > 100) {
-      setError("Interest rate cannot exceed 100%");
+    if (parseFloat(disbursementInterest) > 100) {
+      setError("Disbursement interest cannot exceed 100%");
+      return false;
+    }
+
+    if (!repaymentInterest || parseFloat(repaymentInterest) < 0) {
+      setError("Please enter a valid repayment interest (0 or greater)");
+      return false;
+    }
+
+    if (parseFloat(repaymentInterest) > 500) {
+      setError("Repayment interest seems too high (max 500%)");
       return false;
     }
 
@@ -165,7 +179,8 @@ const AdminLoanSettings: React.FC = () => {
 
     try {
       const configData = {
-        interest_rate: parseFloat(interestRate),
+        disbursement_interest: parseFloat(disbursementInterest),
+        repayment_interest: parseFloat(repaymentInterest),
         tenure_options: tenureOptions,
         payment_type: paymentType,
         updated_at: new Date().toISOString(),
@@ -233,6 +248,29 @@ const AdminLoanSettings: React.FC = () => {
     );
   };
 
+  // Calculate example values
+  const calculateExample = () => {
+    const loanAmount = 10000;
+    const disbInterest = parseFloat(disbursementInterest) || 0;
+    const repayInterest = parseFloat(repaymentInterest) || 0;
+
+    const disbursementDeduction = Math.round(loanAmount * (disbInterest / 100));
+    const amountReceived = loanAmount - disbursementDeduction;
+
+    const repaymentAddition = Math.round(loanAmount * (repayInterest / 100));
+    const totalRepayable = loanAmount + repaymentAddition;
+
+    const totalInterest = disbursementDeduction + repaymentAddition;
+
+    return {
+      amountReceived,
+      totalRepayable,
+      totalInterest,
+      disbursementDeduction,
+      repaymentAddition,
+    };
+  };
+
   if (isFetching) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -240,6 +278,8 @@ const AdminLoanSettings: React.FC = () => {
       </div>
     );
   }
+
+  const example = calculateExample();
 
   return (
     <>
@@ -261,8 +301,8 @@ const AdminLoanSettings: React.FC = () => {
               </h1>
             </div>
             <p className="text-gray-600">
-              Configure interest rates, tenure options, and payment types for
-              all loans
+              Configure disbursement interest %, repayment interest %, tenure
+              options, and payment types
             </p>
           </div>
 
@@ -275,26 +315,110 @@ const AdminLoanSettings: React.FC = () => {
               </div>
             )}
 
-            {/* Interest Rate Section */}
-            <div className="mb-8">
+            {/* Disbursement Interest Section */}
+            <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Percent className="inline w-4 h-4 mr-1" />
-                Annual Interest Rate (%)
+                Disbursement Interest (%)
               </label>
               <input
                 type="number"
-                value={interestRate}
-                onChange={(e) => setInterestRate(e.target.value)}
+                value={disbursementInterest}
+                onChange={(e) => setDisbursementInterest(e.target.value)}
                 min="0"
                 max="100"
                 step="0.01"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                placeholder="Enter interest rate (e.g., 12.00)"
+                placeholder="Enter disbursement interest % (e.g., 5.00)"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Annual interest rate applied to all loans (e.g., 12% = 12.00)
+                Interest deducted from loan amount (e.g., 5% means ₹500 deducted
+                from ₹10,000, user gets ₹9,500)
               </p>
             </div>
+
+            {/* Repayment Interest Section */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Percent className="inline w-4 h-4 mr-1" />
+                Repayment Interest (%)
+              </label>
+              <input
+                type="number"
+                value={repaymentInterest}
+                onChange={(e) => setRepaymentInterest(e.target.value)}
+                min="0"
+                max="500"
+                step="0.01"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                placeholder="Enter repayment interest % (e.g., 10.00)"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Interest added to loan amount (e.g., 10% means ₹1,000 added to
+                ₹10,000, user pays ₹11,000)
+              </p>
+            </div>
+
+            {/* Example Calculation */}
+            {disbursementInterest && repaymentInterest && (
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                  Example Calculation (₹10,000 loan):
+                </h3>
+                <div className="space-y-2 text-sm mb-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Loan Amount:</span>
+                    <span className="font-semibold">₹10,000</span>
+                  </div>
+                  <div className="flex justify-between text-red-600">
+                    <span>
+                      - Disbursement Interest ({disbursementInterest}%):
+                    </span>
+                    <span className="font-semibold">
+                      -₹{example.disbursementDeduction.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2">
+                    <span className="text-gray-600 font-semibold">
+                      User Receives:
+                    </span>
+                    <span className="font-bold text-green-600 text-base">
+                      ₹{example.amountReceived.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm border-t pt-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Loan Amount:</span>
+                    <span className="font-semibold">₹10,000</span>
+                  </div>
+                  <div className="flex justify-between text-orange-600">
+                    <span>+ Repayment Interest ({repaymentInterest}%):</span>
+                    <span className="font-semibold">
+                      +₹{example.repaymentAddition.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2">
+                    <span className="text-gray-600 font-semibold">
+                      User Repays:
+                    </span>
+                    <span className="font-bold text-gray-800 text-base">
+                      ₹{example.totalRepayable.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 font-semibold">
+                      Total Interest:
+                    </span>
+                    <span className="font-bold text-orange-600 text-base">
+                      ₹{example.totalInterest.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Payment Type Section */}
             <div className="mb-8">
@@ -437,9 +561,11 @@ const AdminLoanSettings: React.FC = () => {
             <div className="flex justify-end">
               <button
                 onClick={handleSave}
-                disabled={isLoading || !interestRate}
+                disabled={
+                  isLoading || !disbursementInterest || !repaymentInterest
+                }
                 className={`px-6 py-3 rounded-lg font-semibold text-white transition-all duration-200 flex items-center ${
-                  isLoading || !interestRate
+                  isLoading || !disbursementInterest || !repaymentInterest
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-yellow-500 hover:bg-yellow-600 shadow-md hover:shadow-lg"
                 }`}
@@ -466,9 +592,17 @@ const AdminLoanSettings: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">Interest Rate:</span>
+                    <span className="text-gray-600">
+                      Disbursement Interest:
+                    </span>
                     <span className="ml-2 font-semibold text-gray-800">
-                      {currentSettings.interest_rate}% per annum
+                      {currentSettings.disbursement_interest}%
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Repayment Interest:</span>
+                    <span className="ml-2 font-semibold text-gray-800">
+                      {currentSettings.repayment_interest}%
                     </span>
                   </div>
                   <div>
