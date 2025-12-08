@@ -91,7 +91,8 @@ export async function calculateCommissions(
         original_amount: planAmount,
         level: level,
         payment_id: paymentId,
-        status: "pending",
+        status: "paid",
+        paid_at: new Date().toISOString(),
       });
     }
 
@@ -111,7 +112,10 @@ export async function calculateCommissions(
     console.error("Commission calculation error:", error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to calculate commissions",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to calculate commissions",
     };
   }
 }
@@ -143,7 +147,9 @@ async function buildSponsorChain(
     }
 
     // Get next sponsor in chain
-    const { data: nextSponsor }: { data: { sponsor_id: string | null } | null } = await supabase
+    const {
+      data: nextSponsor,
+    }: { data: { sponsor_id: string | null } | null } = await supabase
       .from("agents")
       .select("sponsor_id")
       .eq("id", currentSponsorId)

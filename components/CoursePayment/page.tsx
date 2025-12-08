@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { CheckCircle, XCircle, Eye, X } from "lucide-react";
 import { placeAgentInBinaryTree } from "@/lib/binaryPlacement";
 import { calculateCommissions } from "@/lib/commissionCalculation";
+import { grantInstantCashback } from "@/lib/cashback";
+
 interface Payment {
   id: string;
   user_id: string;
@@ -245,6 +247,18 @@ export default function CoursePayment() {
       }
 
       //
+      // ✅ INSTANT CASHBACK (20%)
+      const cashbackResult = await grantInstantCashback(
+        payment.id, // payment_id
+        agentId, // purchasing agent
+        payment.plan_id, // plan_id
+        payment.payment_amount // ORIGINAL PAID AMOUNT
+      );
+
+      if (!cashbackResult.success) {
+        console.error("Cashback error:", cashbackResult.message);
+      }
+
       // ✅ 6. FINAL: mark payment verified
       await supabase
         .from("course_payments")

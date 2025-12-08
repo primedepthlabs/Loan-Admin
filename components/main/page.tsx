@@ -33,8 +33,8 @@ import AdminAgentCourses from "../Agent-Courses/page";
 import CoursePayment from "../CoursePayment/page";
 import CourseUsersPage from "../../app/course-users/page";
 import ContentManagement from "../content-management/page";
-import WithdrawalApprovals from "../WithdrawalApprovals/page";
 import AdminNetworkViewPage from "../Users-Network/page";
+import AdminWithdrawalDashboard from "../Withdrawls/page";
 interface SidebarProps {
   activeSection: string;
   setActiveSection: (section: string) => void;
@@ -103,14 +103,15 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: "Plan Resources",
       icon: TableOfContents,
     },
-    {
-      id: "withdrawalrequests",
-      label: "Withdrawal Requests",
-      icon: Wallet,
-    },
+
     {
       id: "networkview",
       label: "User Network View",
+      icon: Wallet,
+    },
+    {
+      id: "withdrawlrequests",
+      label: "Withdrawal Requests",
       icon: Wallet,
     },
   ];
@@ -247,10 +248,11 @@ const Main = () => {
         return <CourseUsersPage />;
       case "contentmanagement":
         return <ContentManagement />;
-      case "withdrawalrequests":
-        return <WithdrawalApprovals />;
+
       case "networkview":
         return <AdminNetworkViewPage />;
+      case "withdrawlrequests":
+        return <AdminWithdrawalDashboard />;
       default:
         return <UsersPage />;
     }
