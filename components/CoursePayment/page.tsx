@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { CheckCircle, XCircle, Eye, X } from "lucide-react";
 import { placeAgentInBinaryTree } from "@/lib/binaryPlacement";
-
+import { calculateCommissions } from "@/lib/commissionCalculation";
 interface Payment {
   id: string;
   user_id: string;
@@ -214,7 +214,37 @@ export default function CoursePayment() {
           .eq("plan_id", payment.plan_id);
         throw new Error(placement.error);
       }
+      //
+      console.log("Calculating commissions for verified payment...");
 
+      // Check if commissions already exist
+      const { data: existingCommissions } = await supabase
+        .from("commissions")
+        .select("id")
+        .eq("payment_id", paymentId)
+        .limit(1);
+
+      if (!existingCommissions || existingCommissions.length === 0) {
+        const commissionResult = await calculateCommissions(
+          paymentId,
+          agentId,
+          payment.plan_id,
+          payment.payment_amount
+        );
+
+        if (commissionResult.success) {
+          console.log(`✅ ${commissionResult.message}`);
+        } else {
+          console.error(
+            "⚠️ Commission calculation failed:",
+            commissionResult.message
+          );
+        }
+      } else {
+        console.log("ℹ️ Commissions already exist for this payment");
+      }
+
+      //
       // ✅ 6. FINAL: mark payment verified
       await supabase
         .from("course_payments")
