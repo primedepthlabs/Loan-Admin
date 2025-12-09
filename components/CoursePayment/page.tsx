@@ -258,6 +258,27 @@ export default function CoursePayment() {
       if (!cashbackResult.success) {
         console.error("Cashback error:", cashbackResult.message);
       }
+      //
+      // ✅ LOCK 80% AMOUNT UNTIL PAIRING COMPLETE
+      const { data: planSettings } = await supabase
+        .from("plan_chain_settings")
+        .select("pairing_limit")
+        .eq("plan_id", payment.plan_id)
+        .single();
+
+      const pairingLimit = planSettings?.pairing_limit ?? 1;
+
+      await supabase.from("agent_plan_rewards").upsert(
+        {
+          agent_id: agentId,
+          plan_id: payment.plan_id,
+          locked_amount: payment.payment_amount * 0.8,
+          pairing_limit: pairingLimit,
+          pairing_completed: 0,
+          is_released: false,
+        },
+        { onConflict: "agent_id,plan_id" }
+      );
 
       // ✅ 6. FINAL: mark payment verified
       await supabase
