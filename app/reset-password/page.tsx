@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { Eye, EyeOff, CheckCircle, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import Head from "next/head";
+import Image from "next/image";
 
 interface SuccessNotificationProps {
   message: string;
@@ -39,7 +39,35 @@ const authService = {
   },
 };
 
-const ResetPasswordPage: React.FC = () => {
+// Success notification component
+const SuccessNotification: React.FC<SuccessNotificationProps> = ({
+  message,
+  onClose,
+}) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-2 max-w-md">
+      <CheckCircle className="w-5 h-5 flex-shrink-0" />
+      <span className="text-sm">{message}</span>
+      <button
+        onClick={onClose}
+        className="ml-2 text-white hover:text-gray-200 transition-colors"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
+
+// Main Reset Password Content Component
+function ResetPasswordContent() {
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -80,34 +108,7 @@ const ResetPasswordPage: React.FC = () => {
     checkSession();
   }, []);
 
-  // Success notification component
-  const SuccessNotification: React.FC<SuccessNotificationProps> = ({
-    message,
-    onClose,
-  }) => {
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }, [onClose]);
-
-    return (
-      <div className="fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-2 max-w-md">
-        <CheckCircle className="w-5 h-5 flex-shrink-0" />
-        <span className="text-sm">{message}</span>
-        <button
-          onClick={onClose}
-          className="ml-2 text-white hover:text-gray-200 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    );
-  };
-
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     if (!password) {
       setError("Password is required");
       return false;
@@ -129,21 +130,21 @@ const ResetPasswordPage: React.FC = () => {
     }
 
     return true;
-  };
+  }, [password, confirmPassword]);
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
     if (error) setError("");
-  };
+  }, [error]);
 
-  const handleConfirmPasswordChange = (
+  const handleConfirmPasswordChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setConfirmPassword(e.target.value);
     if (error) setError("");
-  };
+  }, [error]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!validateForm()) {
       return;
     }
@@ -179,63 +180,65 @@ const ResetPasswordPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [password, validateForm, router]);
 
-  const goToLogin = () => {
+  const goToLogin = useCallback(() => {
     router.push("/login");
-  };
+  }, [router]);
 
   const isFormValid = password.length >= 8 && password === confirmPassword;
 
   // Show error state if session is invalid
   if (!isValidSession && error) {
     return (
-      <>
-        <main className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8 text-center">
-            {/* Logo */}
-            <div className="flex items-center justify-center mb-8">
-              <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex items-center justify-center mr-3">
-                <img src="logo.jpg" alt="logo" />
-              </div>
-              <span className="text-2xl font-semibold text-gray-800">
-                Balaji Finance
-              </span>
+      <main className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8 text-center">
+          {/* Logo */}
+          <div className="flex items-center justify-center mb-8">
+            <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex items-center justify-center mr-3">
+              <Image
+                src="/logo.jpg"
+                alt="logo"
+                width={40}
+                height={40}
+                className="rounded-lg"
+              />
             </div>
-
-            <div className="mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <X className="w-8 h-8 text-red-500" />
-              </div>
-              <h1 className="text-xl font-semibold text-gray-800 mb-2">
-                Invalid Reset Link
-              </h1>
-              <p className="text-gray-600 text-sm mb-6">{error}</p>
-            </div>
-
-            <button
-              onClick={goToLogin}
-              className="w-full py-3 px-4 bg-yellow-400 text-gray-800 rounded-lg font-medium hover:bg-yellow-500 transition-colors"
-            >
-              Back to Login
-            </button>
+            <span className="text-2xl font-semibold text-gray-800">
+              Balaji Finance
+            </span>
           </div>
-        </main>
-      </>
+
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <X className="w-8 h-8 text-red-500" />
+            </div>
+            <h1 className="text-xl font-semibold text-gray-800 mb-2">
+              Invalid Reset Link
+            </h1>
+            <p className="text-gray-600 text-sm mb-6">{error}</p>
+          </div>
+
+          <button
+            onClick={goToLogin}
+            className="w-full py-3 px-4 bg-yellow-400 text-gray-800 rounded-lg font-medium hover:bg-yellow-500 transition-colors cursor-pointer"
+          >
+            Back to Login
+          </button>
+        </div>
+      </main>
     );
   }
 
   // Show loading state while checking session
   if (!isValidSession) {
     return (
-      <>
-        <main className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-            <p className="text-gray-600">Verifying reset link...</p>
-          </div>
-        </main>
-      </>
+      <main className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verifying reset link...</p>
+        </div>
+      </main>
     );
   }
 
@@ -253,7 +256,13 @@ const ResetPasswordPage: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center mb-8">
             <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex items-center justify-center mr-3">
-              <img src="logo.jpg" alt="logo" />
+              <Image
+                src="/logo.jpg"
+                alt="logo"
+                width={40}
+                height={40}
+                className="rounded-lg"
+              />
             </div>
             <span className="text-2xl font-semibold text-gray-800">
               Balaji Finance
@@ -363,7 +372,7 @@ const ResetPasswordPage: React.FC = () => {
               <button
                 type="button"
                 onClick={goToLogin}
-                className="text-yellow-400 hover:text-yellow-500 text-sm transition-colors"
+                className="text-yellow-400 hover:text-yellow-500 text-sm transition-colors cursor-pointer"
               >
                 ← Back to Login
               </button>
@@ -402,6 +411,25 @@ const ResetPasswordPage: React.FC = () => {
         </div>
       </main>
     </>
+  );
+}
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8 text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+      <p className="text-gray-600">Loading...</p>
+    </div>
+  </div>
+);
+
+// Main page component with Suspense
+const ResetPasswordPage: React.FC = () => {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 };
 
