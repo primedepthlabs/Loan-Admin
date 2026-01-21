@@ -93,7 +93,7 @@ function ResetPasswordContent() {
 
         if (error || !session) {
           setError(
-            "Invalid or expired reset link. Please request a new password reset."
+            "Invalid or expired reset link. Please request a new password reset.",
           );
           return;
         }
@@ -132,17 +132,21 @@ function ResetPasswordContent() {
     return true;
   }, [password, confirmPassword]);
 
-  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-    if (error) setError("");
-  }, [error]);
+  const handlePasswordChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPassword(e.target.value);
+      if (error) setError("");
+    },
+    [error],
+  );
 
-  const handleConfirmPasswordChange = useCallback((
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setConfirmPassword(e.target.value);
-    if (error) setError("");
-  }, [error]);
+  const handleConfirmPasswordChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setConfirmPassword(e.target.value);
+      if (error) setError("");
+    },
+    [error],
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) {
@@ -157,7 +161,7 @@ function ResetPasswordContent() {
 
       if (result.success) {
         setSuccessMessage(
-          "Password updated successfully! Redirecting to login..."
+          "Password updated successfully! Redirecting to login...",
         );
         setShowSuccess(true);
 
@@ -171,7 +175,7 @@ function ResetPasswordContent() {
         }, 2000);
       } else {
         setError(
-          result.error || "Failed to update password. Please try again."
+          result.error || "Failed to update password. Please try again.",
         );
       }
     } catch (error) {
