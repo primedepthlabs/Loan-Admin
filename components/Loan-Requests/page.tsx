@@ -2,190 +2,23 @@
 import { useState, useEffect } from "react";
 import { NextPage } from "next";
 import { supabase } from "@/lib/supabaseClient";
-import { FileText } from "lucide-react";
-
-// SVG Icons (keeping all existing icons)
-const SearchIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-    />
-  </svg>
-);
-
-const EyeIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-    />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M5 13l4 4L19 7"
-    />
-  </svg>
-);
-
-const XIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M6 18L18 6M6 6l12 12"
-    />
-  </svg>
-);
-
-const ClockIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-);
-
-const FilterIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z"
-    />
-  </svg>
-);
-
-const RefreshIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-    />
-  </svg>
-);
-
-const ImageIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-    />
-  </svg>
-);
-
-const DocumentIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-    />
-  </svg>
-);
-
-const ProcessingIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-    />
-  </svg>
-);
-
-const MoneyIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-);
+import {
+  FileText,
+  Search,
+  Eye,
+  Check,
+  X,
+  Clock,
+  Filter,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle,
+  Banknote,
+  XCircle,
+  Loader2,
+  Calendar,
+} from "lucide-react";
 
 // Interfaces
 interface User {
@@ -221,6 +54,8 @@ interface LoanApplication {
   last_installment_amount?: number;
   total_payable: number;
   total_interest: number;
+  payment_screenshot_url?: string;
+  login_payment_amount?: string;
   status:
     | "pending"
     | "approved"
@@ -250,7 +85,6 @@ interface LoanEMI {
   payment_notes?: string;
 }
 
-// Utility Functions
 const getImageUrl = (path: string): string => {
   if (!path) return "";
   if (path.startsWith("http")) return path;
@@ -258,7 +92,6 @@ const getImageUrl = (path: string): string => {
   return data.publicUrl;
 };
 
-// Service
 const loanApplicationService = {
   getAllApplications: async () => {
     try {
@@ -290,7 +123,6 @@ const loanApplicationService = {
         .in("auth_user_id", userIds);
 
       if (userError) {
-        console.error("Error fetching users:", userError);
         return {
           success: true,
           applications: applications.map((app) => ({ ...app, users: null })),
@@ -306,7 +138,6 @@ const loanApplicationService = {
 
       return { success: true, applications: result };
     } catch (error) {
-      console.error("Get loan applications error:", error);
       return {
         success: false,
         error: (error as Error).message,
@@ -318,7 +149,7 @@ const loanApplicationService = {
   updateApplicationStatus: async (
     applicationId: string,
     newStatus: "approved" | "rejected" | "processing",
-    reviewerNotes?: string
+    reviewerNotes?: string,
   ) => {
     try {
       const updateData: any = {
@@ -339,25 +170,17 @@ const loanApplicationService = {
       const application = applications?.[0];
       if (!application) throw new Error("Application not found");
 
-      const { data: user, error: userError } = await supabase
+      const { data: user } = await supabase
         .from("users")
         .select("*")
         .eq("auth_user_id", application.user_id)
         .single();
 
-      if (userError) {
-        console.error("Error fetching user:", userError);
-      }
-
       return {
         success: true,
-        application: {
-          ...application,
-          users: user || null,
-        },
+        application: { ...application, users: user || null },
       };
     } catch (error) {
-      console.error("Update application status error:", error);
       return { success: false, error: (error as Error).message };
     }
   },
@@ -365,10 +188,9 @@ const loanApplicationService = {
   disburseLoan: async (
     applicationId: string,
     disbursedAmount: number,
-    disbursementNotes: string
+    disbursementNotes: string,
   ) => {
     try {
-      // Get application details
       const { data: application, error: fetchError } = await supabase
         .from("loan_applications")
         .select("*")
@@ -378,7 +200,6 @@ const loanApplicationService = {
       if (fetchError) throw fetchError;
       if (!application) throw new Error("Application not found");
 
-      // Update application status to disbursed
       const { data: updatedApp, error: updateError } = await supabase
         .from("loan_applications")
         .update({
@@ -394,10 +215,8 @@ const loanApplicationService = {
 
       if (updateError) throw updateError;
 
-      // Generate EMI schedule
       const emis: any[] = [];
       const numberOfInstallments = application.tenure;
-
       const startDate = new Date();
 
       for (let i = 1; i <= numberOfInstallments; i++) {
@@ -422,12 +241,9 @@ const loanApplicationService = {
         });
       }
 
-      // Insert EMIs
       const { error: emiError } = await supabase.from("loan_emis").insert(emis);
-
       if (emiError) throw emiError;
 
-      // Fetch user
       const { data: user } = await supabase
         .from("users")
         .select("*")
@@ -436,13 +252,9 @@ const loanApplicationService = {
 
       return {
         success: true,
-        application: {
-          ...updatedApp,
-          users: user || null,
-        },
+        application: { ...updatedApp, users: user || null },
       };
     } catch (error) {
-      console.error("Disburse loan error:", error);
       return { success: false, error: (error as Error).message };
     }
   },
@@ -456,10 +268,8 @@ const loanApplicationService = {
         .order("emi_number", { ascending: true });
 
       if (error) throw error;
-
       return { success: true, emis: data || [] };
     } catch (error) {
-      console.error("Get EMIs error:", error);
       return { success: false, error: (error as Error).message, emis: [] };
     }
   },
@@ -486,10 +296,8 @@ const LoanApplications: NextPage = () => {
     action: "approved" | "rejected";
   } | null>(null);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
-
-  // New states for disbursement
   const [showDisbursementModal, setShowDisbursementModal] = useState(false);
   const [disbursementAmount, setDisbursementAmount] = useState("");
   const [disbursementNotes, setDisbursementNotes] = useState("");
@@ -506,17 +314,14 @@ const LoanApplications: NextPage = () => {
   const loadApplications = async () => {
     setIsLoading(true);
     setError("");
-
     try {
       const result = await loanApplicationService.getAllApplications();
-
       if (result.success && result.applications) {
         setApplications(result.applications);
       } else {
         setError(result.error || "Failed to load loan applications");
       }
     } catch (err) {
-      console.error("Load applications error:", err);
       setError("Something went wrong while loading loan applications");
     } finally {
       setIsLoading(false);
@@ -532,22 +337,20 @@ const LoanApplications: NextPage = () => {
   const handleUpdateApplicationStatus = async (
     applicationId: string,
     status: "approved" | "rejected" | "processing",
-    notes?: string
+    notes?: string,
   ) => {
     try {
       const result = await loanApplicationService.updateApplicationStatus(
         applicationId,
         status,
-        notes
+        notes,
       );
-
       if (result.success && result.application) {
         setApplications(
           applications.map((app) =>
-            app.id === applicationId ? result.application! : app
-          )
+            app.id === applicationId ? result.application! : app,
+          ),
         );
-
         if (selectedApplication && selectedApplication.id === applicationId) {
           setSelectedApplication(result.application!);
         }
@@ -555,18 +358,16 @@ const LoanApplications: NextPage = () => {
         setError(result.error || "Failed to update application status");
       }
     } catch (err) {
-      console.error("Update application status error:", err);
       setError("Something went wrong while updating application status");
     }
   };
 
   const handleReviewSubmit = async () => {
     if (!applicationToReview) return;
-
     await handleUpdateApplicationStatus(
       applicationToReview.id,
       applicationToReview.action,
-      reviewerNotes
+      reviewerNotes,
     );
     setShowReviewModal(false);
     setApplicationToReview(null);
@@ -576,40 +377,34 @@ const LoanApplications: NextPage = () => {
 
   const handleDisburseLoan = async () => {
     if (!applicationToDisburse || !disbursementAmount) return;
-
     try {
       const result = await loanApplicationService.disburseLoan(
         applicationToDisburse,
         parseFloat(disbursementAmount),
-        disbursementNotes
+        disbursementNotes,
       );
-
       if (result.success && result.application) {
         setApplications(
           applications.map((app) =>
-            app.id === applicationToDisburse ? result.application! : app
-          )
+            app.id === applicationToDisburse ? result.application! : app,
+          ),
         );
-
         if (
           selectedApplication &&
           selectedApplication.id === applicationToDisburse
         ) {
           setSelectedApplication(result.application!);
         }
-
         setShowDisbursementModal(false);
         setApplicationToDisburse(null);
         setDisbursementAmount("");
         setDisbursementNotes("");
         setShowApplicationModal(false);
-
         alert("Loan disbursed successfully! EMI schedule created.");
       } else {
         setError(result.error || "Failed to disburse loan");
       }
     } catch (err) {
-      console.error("Disburse loan error:", err);
       setError("Something went wrong while disbursing loan");
     }
   };
@@ -624,13 +419,11 @@ const LoanApplications: NextPage = () => {
         setError(result.error || "Failed to load EMIs");
       }
     } catch (err) {
-      console.error("Load EMIs error:", err);
       setError("Something went wrong while loading EMIs");
     }
   };
 
-  const handleImageError = (imageSrc: string, error: any) => {
-    console.error("Failed to load image:", imageSrc, error);
+  const handleImageError = (imageSrc: string) => {
     setImageLoadErrors((prev) => new Set([...prev, imageSrc]));
   };
 
@@ -643,9 +436,7 @@ const LoanApplications: NextPage = () => {
       (user?.email &&
         user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (user?.mobile_number && user.mobile_number.includes(searchTerm));
-
     const matchesFilter = filterStatus === "all" || app.status === filterStatus;
-
     return matchesSearch && matchesFilter;
   });
 
@@ -653,45 +444,45 @@ const LoanApplications: NextPage = () => {
   const indexOfFirstApplication = indexOfLastApplication - applicationsPerPage;
   const currentApplications = filteredApplications.slice(
     indexOfFirstApplication,
-    indexOfLastApplication
+    indexOfLastApplication,
   );
   const totalPages = Math.ceil(
-    filteredApplications.length / applicationsPerPage
+    filteredApplications.length / applicationsPerPage,
   );
 
-  const getStatusColor = (status: string): string => {
+  const getStatusStyle = (status: string) => {
     switch (status) {
       case "approved":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-emerald-50 text-emerald-600 border-emerald-100";
       case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-amber-50 text-amber-600 border-amber-100";
       case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-50 text-red-600 border-red-100";
       case "processing":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-50 text-blue-600 border-blue-100";
       case "disbursed":
-        return "bg-purple-100 text-purple-800 border-purple-200";
+        return "bg-purple-50 text-purple-600 border-purple-100";
       case "completed":
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 text-gray-600 border-gray-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-50 text-gray-600 border-gray-100";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "approved":
-        return <CheckIcon />;
+        return <Check className="w-3 h-3" />;
       case "pending":
-        return <ClockIcon />;
+        return <Clock className="w-3 h-3" />;
       case "rejected":
-        return <XIcon />;
+        return <X className="w-3 h-3" />;
       case "processing":
-        return <ProcessingIcon />;
+        return <RefreshCw className="w-3 h-3" />;
       case "disbursed":
-        return <MoneyIcon />;
+        return <Banknote className="w-3 h-3" />;
       case "completed":
-        return <CheckIcon />;
+        return <Check className="w-3 h-3" />;
       default:
         return null;
     }
@@ -702,8 +493,6 @@ const LoanApplications: NextPage = () => {
       day: "2-digit",
       month: "short",
       year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
@@ -720,359 +509,332 @@ const LoanApplications: NextPage = () => {
   const DocumentSection = ({
     title,
     photos,
-    icon,
   }: {
     title: string;
     photos: string[];
-    icon: React.ReactNode;
   }) => (
-    <div className="border rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-3">
-        {icon}
-        <h4 className="font-medium text-gray-700">{title}</h4>
-        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-          {photos?.length || 0} photo{(photos?.length || 0) !== 1 ? "s" : ""}
+    <div className="bg-gray-50 rounded-lg p-3">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium text-[#2B3674]">{title}</p>
+        <span className="text-[9px] px-1.5 py-0.5 bg-[#03A9F4]/10 text-[#03A9F4] rounded font-medium">
+          {photos?.length || 0}
         </span>
       </div>
       {photos && photos.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           {photos.map((photoPath, index) => {
             const imageUrl = getImageUrl(photoPath);
             const hasError = imageLoadErrors.has(imageUrl);
-
             return (
               <div key={index} className="relative group">
                 {hasError ? (
-                  <div className="w-full h-20 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-red-300">
-                    <div className="text-center">
-                      <XIcon />
-                      <p className="text-xs text-red-600 mt-1">
-                        Failed to load
-                      </p>
-                    </div>
+                  <div className="w-full h-12 bg-gray-200 rounded flex items-center justify-center">
+                    <XCircle className="w-4 h-4 text-red-400" />
                   </div>
                 ) : (
-                  <>
-                    <img
-                      src={imageUrl}
-                      alt={`${title} ${index + 1}`}
-                      className="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => {
-                        setSelectedImage(imageUrl);
-                        setShowImageModal(true);
-                      }}
-                      onError={(e) => handleImageError(imageUrl, e)}
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <div className="text-white">
-                        <EyeIcon />
-                      </div>
-                    </div>
-                  </>
+                  <img
+                    src={imageUrl}
+                    alt={`${title} ${index + 1}`}
+                    className="w-full h-12 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => {
+                      setSelectedImage(imageUrl);
+                      setShowImageModal(true);
+                    }}
+                    onError={() => handleImageError(imageUrl)}
+                    loading="lazy"
+                  />
                 )}
               </div>
             );
           })}
         </div>
       ) : (
-        <p className="text-gray-500 text-sm">No photos uploaded</p>
+        <p className="text-[10px] text-[#A3AED0]">No photos</p>
       )}
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className=" shadow-sm">
-        <div className="relative">
-          <div className="absolute inset-0 opacity-10">
-            <div
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 20% 50%, white 1px, transparent 1px)",
-                backgroundSize: "20px 20px",
-              }}
-              className="w-full h-full"
-            />
-          </div>
-          <div className="relative max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-gray-800" />
-                </div>
-                <div>
-                  <h1 className="text-base font-bold text-black">
-                    Loan Applications
-                  </h1>
-                </div>
-              </div>
-              <button
-                onClick={refreshApplications}
-                disabled={refreshing}
-                className="flex items-center gap-2 px-3 py-2 text-black hover:bg-black/10 rounded-lg transition-colors disabled:opacity-50 text-sm"
-              >
-                <div className={refreshing ? "animate-spin" : ""}>
-                  <RefreshIcon />
-                </div>
-                <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
-              </button>
+    <div className="min-h-screen bg-[#F4F7FE] p-3 sm:p-4">
+      <div className="max-w-6xl mx-auto space-y-3">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#03A9F4] to-[#0288D1] flex items-center justify-center shadow-sm">
+              <FileText className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold text-[#2B3674]">
+                Loan Applications
+              </h1>
+              <p className="text-xs text-[#A3AED0]">
+                {applications.length} total applications
+              </p>
             </div>
           </div>
+          <button
+            onClick={refreshApplications}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#03A9F4] bg-[#F4F7FE] rounded-md hover:bg-[#E3F2FD] transition-colors disabled:opacity-50"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`}
+            />
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        {/* Error Message */}
+        {/* Error */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start justify-between">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
+            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-xs text-red-600 font-medium">{error}</p>
             <button
               onClick={() => setError("")}
-              className="text-red-500 hover:text-red-700 ml-4"
+              className="ml-auto text-red-400 hover:text-red-600 p-0.5"
             >
-              <XIcon />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        {/* Loading State */}
         {isLoading ? (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-            <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading applications...</p>
+          <div className="bg-white rounded-lg shadow-sm p-12 flex flex-col items-center justify-center">
+            <Loader2 className="w-8 h-8 text-[#03A9F4] animate-spin" />
+            <p className="text-[#A3AED0] text-sm mt-3">
+              Loading applications...
+            </p>
           </div>
         ) : (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-7 gap-2 mb-4">
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
               {[
-                { label: "Total", value: statusCounts.all, color: "gray" },
                 {
-                  label: "Approved",
-                  value: statusCounts.approved,
-                  color: "green",
+                  label: "Total",
+                  count: statusCounts.all,
+                  color: "text-[#2B3674]",
+                  bg: "bg-white",
                 },
                 {
                   label: "Pending",
-                  value: statusCounts.pending,
-                  color: "yellow",
+                  count: statusCounts.pending,
+                  color: "text-amber-600",
+                  bg: "bg-amber-50",
                 },
                 {
                   label: "Processing",
-                  value: statusCounts.processing,
-                  color: "blue",
+                  count: statusCounts.processing,
+                  color: "text-blue-600",
+                  bg: "bg-blue-50",
+                },
+                {
+                  label: "Approved",
+                  count: statusCounts.approved,
+                  color: "text-emerald-600",
+                  bg: "bg-emerald-50",
                 },
                 {
                   label: "Disbursed",
-                  value: statusCounts.disbursed,
-                  color: "purple",
+                  count: statusCounts.disbursed,
+                  color: "text-purple-600",
+                  bg: "bg-purple-50",
                 },
                 {
                   label: "Completed",
-                  value: statusCounts.completed,
-                  color: "gray",
+                  count: statusCounts.completed,
+                  color: "text-gray-600",
+                  bg: "bg-gray-100",
                 },
                 {
                   label: "Rejected",
-                  value: statusCounts.rejected,
-                  color: "red",
+                  count: statusCounts.rejected,
+                  color: "text-red-600",
+                  bg: "bg-red-50",
                 },
-              ].map((stat) => (
+              ].map((stat, idx) => (
                 <div
-                  key={stat.label}
-                  className="bg-white rounded-lg p-2 shadow-sm"
+                  key={idx}
+                  className={`${stat.bg} rounded-lg p-2 border border-gray-100/50`}
                 >
-                  <p className="text-xs text-gray-500">{stat.label}</p>
-                  <p className={`text-xl font-bold text-${stat.color}-600`}>
-                    {stat.value}
+                  <p className="text-[9px] text-[#A3AED0] uppercase font-medium truncate">
+                    {stat.label}
+                  </p>
+                  <p className={`text-lg font-bold ${stat.color}`}>
+                    {stat.count}
                   </p>
                 </div>
               ))}
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm p-3 mb-4">
-              <div className="flex items-center gap-4">
-                <div className="flex-1 relative">
+            {/* Filters */}
+            <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-100/50 flex flex-col sm:flex-row gap-2 items-center justify-between">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A3AED0]" />
                   <input
                     type="text"
-                    placeholder="Search by name, email, loan type..."
+                    placeholder="Search..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+                    className="pl-8 pr-3 py-1.5 w-full sm:w-48 border border-gray-200 rounded-md text-xs text-[#2B3674] focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] transition-all"
                   />
-                  <div className="absolute left-3 top-2.5 text-gray-400">
-                    <SearchIcon />
-                  </div>
                 </div>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
-                >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="approved">Approved</option>
-                  <option value="disbursed">Disbursed</option>
-                  <option value="completed">Completed</option>
-                  <option value="rejected">Rejected</option>
-                </select>
+                <div className="relative">
+                  <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A3AED0]" />
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="pl-8 pr-6 py-1.5 border border-gray-200 rounded-md text-xs text-[#2B3674] focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] transition-all appearance-none bg-white"
+                  >
+                    <option value="all">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="approved">Approved</option>
+                    <option value="disbursed">Disbursed</option>
+                    <option value="completed">Completed</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
               </div>
+              <p className="text-[10px] text-[#A3AED0]">
+                Showing {currentApplications.length} of{" "}
+                {filteredApplications.length}
+              </p>
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700">
-                      Applicant
-                    </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700">
-                      Loan Details
-                    </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700">
-                      Total Payable
-                    </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700">
-                      EMI
-                    </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700">
-                      KYC
-                    </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700">
-                      Status
-                    </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700">
-                      Applied
-                    </th>
-                    <th className="text-center py-2 px-3 text-xs font-semibold text-gray-700">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentApplications.map((app) => (
-                    <tr key={app.id} className="border-t hover:bg-gray-50">
-                      <td className="py-2 px-3">
-                        <p className="font-medium text-gray-900">
-                          {app.users?.name || "Unknown User"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {app.users?.email || "No email"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {app.users?.mobile_number || "No phone"}
-                        </p>
-                      </td>
-                      <td className="py-2 px-3">
-                        <p className="font-medium text-gray-900">
-                          {app.loan_type}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          ₹{app.loan_amount.toLocaleString("en-IN")}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {app.tenure} {app.tenure_unit}
-                        </p>
-                      </td>
-                      <td className="py-2 px-3">
-                        <p className="text-lg font-bold text-green-600">
-                          ₹{app.total_payable.toLocaleString("en-IN")}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Interest: ₹
-                          {app.total_interest.toLocaleString("en-IN")}
-                        </p>
-                      </td>
-                      <td className="py-2 px-3">
-                        <p className="font-semibold text-yellow-600">
-                          ₹{app.installment_amount.toLocaleString("en-IN")}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          /{app.payment_type === "weekly" ? "week" : "month"}
-                        </p>
-                      </td>
-                      <td className="py-2 px-3">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                            app.users?.kyc_status || "pending"
-                          )}`}
-                        >
-                          {getStatusIcon(app.users?.kyc_status || "pending")}
-                          {app.users?.kyc_status
-                            ? app.users.kyc_status.charAt(0).toUpperCase() +
-                              app.users.kyc_status.slice(1).replace("_", " ")
-                            : "Pending"}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                            app.status
-                          )}`}
-                        >
-                          {getStatusIcon(app.status)}
-                          {app.status.charAt(0).toUpperCase() +
-                            app.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3 text-xs text-gray-600">
-                        {formatDate(app.applied_at)}
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <button
-                          onClick={() => {
-                            setSelectedApplication(app);
-                            setShowApplicationModal(true);
-                          }}
-                          className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg"
-                        >
-                          <EyeIcon />
-                        </button>
-                      </td>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100/50 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50/50 border-b border-gray-100">
+                    <tr>
+                      <th className="text-left py-2.5 px-3 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        Applicant
+                      </th>
+                      <th className="text-left py-2.5 px-3 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        Loan
+                      </th>
+                      <th className="text-left py-2.5 px-3 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        Payable
+                      </th>
+                      <th className="text-left py-2.5 px-3 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        EMI
+                      </th>
+                      <th className="text-left py-2.5 px-3 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        Status
+                      </th>
+                      <th className="text-left py-2.5 px-3 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        Date
+                      </th>
+                      <th className="text-center py-2.5 px-3 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        Action
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {currentApplications.map((app) => (
+                      <tr
+                        key={app.id}
+                        className="hover:bg-gray-50/50 transition-colors"
+                      >
+                        <td className="py-2.5 px-3">
+                          <p className="text-sm font-medium text-[#2B3674]">
+                            {app.users?.name || "Unknown"}
+                          </p>
+                          <p className="text-[10px] text-[#A3AED0] truncate max-w-[120px]">
+                            {app.users?.mobile_number || "No phone"}
+                          </p>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <p className="text-xs font-medium text-[#2B3674]">
+                            {app.loan_type}
+                          </p>
+                          <p className="text-[10px] text-[#A3AED0]">
+                            ₹{app.loan_amount.toLocaleString("en-IN")} •{" "}
+                            {app.tenure} {app.tenure_unit}
+                          </p>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <p className="text-sm font-semibold text-emerald-600">
+                            ₹{app.total_payable.toLocaleString("en-IN")}
+                          </p>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <p className="text-xs font-medium text-amber-600">
+                            ₹{app.installment_amount.toLocaleString("en-IN")}
+                          </p>
+                          <p className="text-[9px] text-[#A3AED0]">
+                            /{app.payment_type === "weekly" ? "wk" : "mo"}
+                          </p>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded border ${getStatusStyle(app.status)}`}
+                          >
+                            {getStatusIcon(app.status)}
+                            {app.status}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <p className="text-xs text-[#2B3674]">
+                            {formatDate(app.applied_at)}
+                          </p>
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          <button
+                            onClick={() => {
+                              setSelectedApplication(app);
+                              setShowApplicationModal(true);
+                            }}
+                            className="p-1.5 text-[#03A9F4] hover:bg-[#F4F7FE] rounded transition-colors"
+                            title="View"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-3 py-2 bg-gray-50 border-t flex items-center justify-between text-sm">
-                  <span className="text-sm text-gray-600">
+                <div className="px-4 py-2.5 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+                  <p className="text-[10px] text-[#A3AED0]">
                     Page {currentPage} of {totalPages}
-                  </span>
-                  <div className="flex gap-2">
+                  </p>
+                  <div className="flex gap-1">
                     <button
-                      onClick={() =>
-                        setCurrentPage(Math.max(1, currentPage - 1))
-                      }
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1.5 text-[#2B3674] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
-                      Previous
+                      <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() =>
-                        setCurrentPage(Math.min(totalPages, currentPage + 1))
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
                       }
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1.5 text-[#2B3674] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
-                      Next
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
               )}
-            </div>
 
-            {filteredApplications.length === 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                <SearchIcon />
-                <p className="text-gray-500 mt-4">No applications found</p>
-              </div>
-            )}
+              {filteredApplications.length === 0 && (
+                <div className="p-12 text-center">
+                  <Search className="w-8 h-8 text-[#A3AED0] mx-auto mb-2" />
+                  <p className="text-sm text-[#A3AED0]">
+                    No applications found
+                  </p>
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -1081,361 +843,271 @@ const LoanApplications: NextPage = () => {
       {showApplicationModal &&
         selectedApplication &&
         selectedApplication.users && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white w-full max-w-6xl rounded-xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Loan Application Details
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    Review complete application
-                  </p>
-                </div>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-xl animate-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#03A9F4]/5 to-transparent">
+                <h3 className="text-sm font-semibold text-[#2B3674]">
+                  Loan Application
+                </h3>
                 <button
                   onClick={() => {
                     setShowApplicationModal(false);
                     setSelectedApplication(null);
                   }}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="p-1 text-[#A3AED0] hover:text-[#2B3674] hover:bg-gray-100 rounded transition-colors"
                 >
-                  <XIcon />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-4 overflow-y-auto max-h-[calc(90vh-140px)] space-y-4">
                 {/* Loan Summary */}
-                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Loan Summary
-                  </h3>
-
-                  {/* Highlighted Total Payable */}
-                  <div className="bg-white rounded-lg p-4 mb-4 border-2 border-green-500">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">
-                          Total Amount to be Repaid
-                        </p>
-                        <p className="text-3xl font-bold text-green-600">
-                          ₹
-                          {selectedApplication.total_payable.toLocaleString(
-                            "en-IN"
-                          )}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Principal: ₹
-                          {selectedApplication.loan_amount.toLocaleString(
-                            "en-IN"
-                          )}{" "}
-                          + Interest: ₹
-                          {selectedApplication.total_interest.toLocaleString(
-                            "en-IN"
-                          )}
-                        </p>
-                      </div>
-                    </div>
+                <div className="bg-gradient-to-r from-emerald-50 to-transparent rounded-lg p-4 border border-emerald-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-medium text-emerald-700">
+                      Total Repayable
+                    </p>
+                    <p className="text-xl font-bold text-emerald-600">
+                      ₹
+                      {selectedApplication.total_payable.toLocaleString(
+                        "en-IN",
+                      )}
+                    </p>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Loan Type</p>
-                      <p className="font-semibold text-gray-900">
-                        {selectedApplication.loan_type}
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="bg-white/50 rounded p-2">
+                      <p className="text-[9px] text-[#A3AED0] uppercase">
+                        Principal
                       </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Principal Amount</p>
-                      <p className="text-lg font-bold text-gray-900">
+                      <p className="text-xs font-semibold text-[#2B3674]">
                         ₹
                         {selectedApplication.loan_amount.toLocaleString(
-                          "en-IN"
+                          "en-IN",
                         )}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        Disbursement Interest
+                    <div className="bg-white/50 rounded p-2">
+                      <p className="text-[9px] text-[#A3AED0] uppercase">
+                        Interest
                       </p>
-                      <p className="font-semibold text-red-600">
-                        {selectedApplication.disbursement_interest}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        Repayment Interest
-                      </p>
-                      <p className="font-semibold text-orange-600">
-                        {selectedApplication.repayment_interest}%
+                      <p className="text-xs font-semibold text-red-600">
+                        ₹
+                        {selectedApplication.total_interest.toLocaleString(
+                          "en-IN",
+                        )}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Tenure</p>
-                      <p className="font-semibold text-gray-900">
+                    <div className="bg-white/50 rounded p-2">
+                      <p className="text-[9px] text-[#A3AED0] uppercase">
+                        Tenure
+                      </p>
+                      <p className="text-xs font-semibold text-[#2B3674]">
                         {selectedApplication.tenure}{" "}
                         {selectedApplication.tenure_unit}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        {selectedApplication.payment_type === "weekly"
-                          ? "Weekly"
-                          : "Monthly"}{" "}
-                        EMI
-                      </p>
-                      <p className="text-lg font-bold text-yellow-700">
+                    <div className="bg-white/50 rounded p-2">
+                      <p className="text-[9px] text-[#A3AED0] uppercase">EMI</p>
+                      <p className="text-xs font-semibold text-amber-600">
                         ₹
                         {selectedApplication.installment_amount.toLocaleString(
-                          "en-IN"
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Total Interest</p>
-                      <p className="text-lg font-bold text-red-600">
-                        ₹
-                        {selectedApplication.total_interest.toLocaleString(
-                          "en-IN"
+                          "en-IN",
                         )}
                       </p>
                     </div>
                   </div>
+                </div>
 
-                  {/* Disbursement Info */}
-                  {selectedApplication.status === "disbursed" && (
-                    <div className="mt-4 pt-4 border-t border-yellow-200">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">
-                            Disbursed Amount
-                          </p>
-                          <p className="font-bold text-green-600">
-                            ₹
-                            {selectedApplication.disbursed_amount?.toLocaleString(
-                              "en-IN"
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Disbursed At</p>
-                          <p className="font-semibold text-gray-900">
-                            {selectedApplication.disbursed_at
-                              ? formatDate(selectedApplication.disbursed_at)
-                              : "N/A"}
-                          </p>
-                        </div>
-                        {selectedApplication.disbursement_notes && (
-                          <div className="col-span-2">
-                            <p className="text-sm text-gray-600">
-                              Disbursement Notes
-                            </p>
-                            <p className="text-gray-900 bg-white p-3 rounded-lg">
-                              {selectedApplication.disbursement_notes}
-                            </p>
-                          </div>
-                        )}
+                {/* Applicant Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-medium text-[#A3AED0] uppercase">
+                      Applicant
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <p className="text-[9px] text-[#A3AED0] uppercase">
+                          Name
+                        </p>
+                        <p className="font-medium text-[#2B3674]">
+                          {selectedApplication.users?.name}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-[#A3AED0] uppercase">
+                          Age
+                        </p>
+                        <p className="font-medium text-[#2B3674]">
+                          {selectedApplication.users?.age}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-[9px] text-[#A3AED0] uppercase">
+                          Phone
+                        </p>
+                        <p className="font-medium text-[#2B3674]">
+                          {selectedApplication.users?.mobile_number}
+                        </p>
                       </div>
                     </div>
-                  )}
-                </div>
-
-                {/* User Info */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Applicant Information
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Name</p>
-                      <p className="font-medium text-gray-900">
-                        {selectedApplication.users?.name || "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Age</p>
-                      <p className="font-medium text-gray-900">
-                        {selectedApplication.users?.age || "N/A"} years
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Email</p>
-                      <p className="font-medium text-gray-900">
-                        {selectedApplication.users?.email || "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Mobile</p>
-                      <p className="font-medium text-gray-900">
-                        {selectedApplication.users?.mobile_number || "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">KYC Status</p>
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                          selectedApplication.users?.kyc_status || "pending"
-                        )}`}
-                      >
-                        {selectedApplication.users?.kyc_status || "Pending"}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Payment Status</p>
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                          selectedApplication.users?.payment_status || "pending"
-                        )}`}
-                      >
-                        {selectedApplication.users?.payment_status || "Pending"}
-                      </span>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-medium text-[#A3AED0] uppercase">
+                      Status
+                    </p>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] text-[#A3AED0]">Loan:</span>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded border ${getStatusStyle(selectedApplication.status)}`}
+                        >
+                          {selectedApplication.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] text-[#A3AED0]">KYC:</span>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded border ${getStatusStyle(selectedApplication.users?.kyc_status || "pending")}`}
+                        >
+                          {selectedApplication.users?.kyc_status || "pending"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Payment Screenshot */}
-                {selectedApplication.users?.payment_screenshot_url && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Payment Screenshot
-                    </h3>
-                    <img
-                      src={getImageUrl(
-                        selectedApplication.users.payment_screenshot_url
-                      )}
-                      alt="Payment"
-                      className="w-full max-w-md rounded-lg cursor-pointer"
-                      onClick={() => {
-                        setSelectedImage(
-                          getImageUrl(
-                            selectedApplication.users!.payment_screenshot_url!
-                          )
-                        );
-                        setShowImageModal(true);
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* KYC Documents */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    KYC Documents
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
+                {/* Documents */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-medium text-[#A3AED0] uppercase">
+                    Documents
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
                     <DocumentSection
                       title="Aadhaar Front"
                       photos={
                         selectedApplication.users.aadhaar_front_photos || []
                       }
-                      icon={<DocumentIcon />}
                     />
                     <DocumentSection
                       title="Aadhaar Back"
                       photos={
                         selectedApplication.users.aadhaar_back_photos || []
                       }
-                      icon={<DocumentIcon />}
                     />
                     <DocumentSection
                       title="PAN Card"
                       photos={selectedApplication.users.pan_card_photos || []}
-                      icon={<DocumentIcon />}
                     />
                     <DocumentSection
                       title="Bank Passbook"
                       photos={
                         selectedApplication.users.bank_passbook_photos || []
                       }
-                      icon={<DocumentIcon />}
                     />
                   </div>
-                  <div className="mt-4">
-                    <DocumentSection
-                      title="Passport Photos"
-                      photos={
-                        selectedApplication.users.passport_photo_urls || []
-                      }
-                      icon={<ImageIcon />}
-                    />
-                  </div>
-                </div>
 
-                {/* Actions */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Actions
-                  </h3>
-                  <div className="flex gap-3 flex-wrap">
-                    {selectedApplication.status === "pending" && (
-                      <button
-                        onClick={() =>
-                          handleUpdateApplicationStatus(
-                            selectedApplication.id,
-                            "processing"
-                          )
-                        }
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                      >
-                        Mark as Processing
-                      </button>
-                    )}
-
-                    {(selectedApplication.status === "pending" ||
-                      selectedApplication.status === "processing") && (
-                      <>
-                        <button
+                  {/* Payment Screenshot Section - ADD THIS */}
+                  {selectedApplication.payment_screenshot_url && (
+                    <div className="mt-2">
+                      <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-medium text-[#2B3674]">
+                            Payment Screenshot
+                          </p>
+                          {selectedApplication.login_payment_amount && (
+                            <span className="text-xs font-semibold text-yellow-700">
+                              ₹{selectedApplication.login_payment_amount}
+                            </span>
+                          )}
+                        </div>
+                        <img
+                          src={selectedApplication.payment_screenshot_url}
+                          alt="Payment Screenshot"
+                          className="w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
                           onClick={() => {
-                            setApplicationToReview({
-                              id: selectedApplication.id,
-                              action: "approved",
-                            });
-                            setShowReviewModal(true);
+                            setSelectedImage(
+                              selectedApplication.payment_screenshot_url!,
+                            );
+                            setShowImageModal(true);
                           }}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => {
-                            setApplicationToReview({
-                              id: selectedApplication.id,
-                              action: "rejected",
-                            });
-                            setShowReviewModal(true);
-                          }}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
-
-                    {selectedApplication.status === "approved" && (
-                      <button
-                        onClick={() => {
-                          setApplicationToDisburse(selectedApplication.id);
-                          setDisbursementAmount(
-                            selectedApplication.loan_amount.toString()
-                          );
-                          setShowDisbursementModal(true);
-                        }}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-                      >
-                        <MoneyIcon />
-                        Disburse Loan
-                      </button>
-                    )}
-
-                    {selectedApplication.status === "disbursed" && (
-                      <button
-                        onClick={() => handleViewEMIs(selectedApplication.id)}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                      >
-                        View EMI Schedule
-                      </button>
-                    )}
-                  </div>
+                          onError={() =>
+                            handleImageError(
+                              selectedApplication.payment_screenshot_url!,
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end gap-2 flex-wrap">
+                {selectedApplication.status === "pending" && (
+                  <button
+                    onClick={() =>
+                      handleUpdateApplicationStatus(
+                        selectedApplication.id,
+                        "processing",
+                      )
+                    }
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors"
+                  >
+                    Processing
+                  </button>
+                )}
+                {(selectedApplication.status === "pending" ||
+                  selectedApplication.status === "processing") && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setApplicationToReview({
+                          id: selectedApplication.id,
+                          action: "approved",
+                        });
+                        setShowReviewModal(true);
+                      }}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => {
+                        setApplicationToReview({
+                          id: selectedApplication.id,
+                          action: "rejected",
+                        });
+                        setShowReviewModal(true);
+                      }}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors"
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
+                {selectedApplication.status === "approved" && (
+                  <button
+                    onClick={() => {
+                      setApplicationToDisburse(selectedApplication.id);
+                      setDisbursementAmount(
+                        selectedApplication.loan_amount.toString(),
+                      );
+                      setShowDisbursementModal(true);
+                    }}
+                    className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors flex items-center gap-1"
+                  >
+                    <Banknote className="w-3.5 h-3.5" />
+                    Disburse
+                  </button>
+                )}
+                {selectedApplication.status === "disbursed" && (
+                  <button
+                    onClick={() => handleViewEMIs(selectedApplication.id)}
+                    className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors flex items-center gap-1"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    View EMIs
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -1443,42 +1115,39 @@ const LoanApplications: NextPage = () => {
 
       {/* Disbursement Modal */}
       {showDisbursementModal && applicationToDisburse && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-xl p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Disburse Loan
-            </h3>
-            <p className="text-gray-600 mb-4">Enter disbursement details:</p>
-
-            <div className="space-y-4">
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-sm w-full shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <h3 className="text-sm font-semibold text-[#2B3674]">
+                Disburse Loan
+              </h3>
+            </div>
+            <div className="p-4 space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Disbursed Amount *
+                <label className="block text-[10px] font-medium text-[#A3AED0] uppercase mb-1">
+                  Amount
                 </label>
                 <input
                   type="number"
                   value={disbursementAmount}
                   onChange={(e) => setDisbursementAmount(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-400"
-                  placeholder="Enter amount"
+                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Disbursement Notes
+                <label className="block text-[10px] font-medium text-[#A3AED0] uppercase mb-1">
+                  Notes
                 </label>
                 <textarea
                   value={disbursementNotes}
                   onChange={(e) => setDisbursementNotes(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-400"
-                  rows={3}
-                  placeholder="Bank transfer details, reference number, etc."
+                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                  rows={2}
+                  placeholder="Bank transfer details..."
                 />
               </div>
             </div>
-
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
               <button
                 onClick={() => {
                   setShowDisbursementModal(false);
@@ -1486,79 +1155,73 @@ const LoanApplications: NextPage = () => {
                   setDisbursementAmount("");
                   setDisbursementNotes("");
                 }}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                className="px-3 py-1.5 text-xs font-medium text-[#A3AED0] hover:text-[#2B3674] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDisburseLoan}
                 disabled={!disbursementAmount}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-1.5 rounded-md text-xs font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Disburse & Create EMI Schedule
+                Disburse
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* EMI Schedule Modal */}
+      {/* EMI Modal */}
       {showEMIModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-4xl rounded-xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b flex items-center justify-between sticky top-0 bg-white">
-              <h3 className="text-lg font-bold text-gray-900">EMI Schedule</h3>
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full max-h-[80vh] overflow-hidden shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <h3 className="text-sm font-semibold text-[#2B3674]">
+                EMI Schedule
+              </h3>
               <button
                 onClick={() => setShowEMIModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="p-1 text-[#A3AED0] hover:text-[#2B3674] hover:bg-gray-100 rounded transition-colors"
               >
-                <XIcon />
+                <X className="w-4 h-4" />
               </button>
             </div>
-
-            <div className="p-6">
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-60px)]">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50/50">
                   <tr>
-                    <th className="text-left py-2 px-3 text-xs font-semibold">
-                      EMI #
+                    <th className="text-left py-2 px-2 text-[10px] font-medium text-[#A3AED0] uppercase">
+                      #
                     </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold">
-                      Due Date
+                    <th className="text-left py-2 px-2 text-[10px] font-medium text-[#A3AED0] uppercase">
+                      Due
                     </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold">
+                    <th className="text-left py-2 px-2 text-[10px] font-medium text-[#A3AED0] uppercase">
                       Amount
                     </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold">
+                    <th className="text-left py-2 px-2 text-[10px] font-medium text-[#A3AED0] uppercase">
                       Status
-                    </th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold">
-                      Paid Amount
                     </th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-50">
                   {emis.map((emi) => (
-                    <tr key={emi.id} className="border-t">
-                      <td className="py-2 px-3">{emi.emi_number}</td>
-                      <td className="py-2 px-3">
+                    <tr key={emi.id}>
+                      <td className="py-2 px-2 text-xs text-[#2B3674]">
+                        {emi.emi_number}
+                      </td>
+                      <td className="py-2 px-2 text-xs text-[#2B3674]">
                         {new Date(emi.due_date).toLocaleDateString("en-IN")}
                       </td>
-                      <td className="py-2 px-3">
+                      <td className="py-2 px-2 text-xs font-medium text-[#2B3674]">
                         ₹{emi.emi_amount.toLocaleString("en-IN")}
                       </td>
-                      <td className="py-2 px-3">
+                      <td className="py-2 px-2">
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                            emi.status
-                          )}`}
+                          className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded border ${getStatusStyle(emi.status)}`}
                         >
-                          {emi.status.charAt(0).toUpperCase() +
-                            emi.status.slice(1)}
+                          {emi.status}
                         </span>
-                      </td>
-                      <td className="py-2 px-3">
-                        ₹{emi.paid_amount.toLocaleString("en-IN")}
                       </td>
                     </tr>
                   ))}
@@ -1569,61 +1232,37 @@ const LoanApplications: NextPage = () => {
         </div>
       )}
 
-      {/* Image Modal */}
-      {showImageModal && selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="relative">
-            <button
-              onClick={() => {
-                setShowImageModal(false);
-                setSelectedImage(null);
-              }}
-              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2"
-            >
-              <XIcon />
-            </button>
-            <img
-              src={selectedImage}
-              alt="Document"
-              className="max-w-full max-h-[90vh] rounded-lg"
-            />
-          </div>
-        </div>
-      )}
-
       {/* Review Modal */}
       {showReviewModal && applicationToReview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-xl p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              {applicationToReview.action === "approved"
-                ? "Approve Application"
-                : "Reject Application"}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {applicationToReview.action === "approved"
-                ? "Add approval notes (optional):"
-                : "Provide rejection reason:"}
-            </p>
-            <textarea
-              value={reviewerNotes}
-              onChange={(e) => setReviewerNotes(e.target.value)}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-yellow-400"
-              rows={4}
-              placeholder={
-                applicationToReview.action === "approved"
-                  ? "Notes..."
-                  : "Reason..."
-              }
-            />
-            <div className="flex justify-end gap-3 mt-6">
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-sm w-full shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <h3 className="text-sm font-semibold text-[#2B3674]">
+                {applicationToReview.action === "approved"
+                  ? "Approve Application"
+                  : "Reject Application"}
+              </h3>
+            </div>
+            <div className="p-4">
+              <textarea
+                value={reviewerNotes}
+                onChange={(e) => setReviewerNotes(e.target.value)}
+                className="w-full h-24 p-2.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] resize-none"
+                placeholder={
+                  applicationToReview.action === "approved"
+                    ? "Notes (optional)..."
+                    : "Rejection reason..."
+                }
+              />
+            </div>
+            <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
               <button
                 onClick={() => {
                   setShowReviewModal(false);
                   setApplicationToReview(null);
                   setReviewerNotes("");
                 }}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                className="px-3 py-1.5 text-xs font-medium text-[#A3AED0] hover:text-[#2B3674] transition-colors"
               >
                 Cancel
               </button>
@@ -1633,10 +1272,10 @@ const LoanApplications: NextPage = () => {
                   applicationToReview.action === "rejected" &&
                   !reviewerNotes.trim()
                 }
-                className={`px-4 py-2 rounded-lg text-white disabled:opacity-50 ${
+                className={`px-4 py-1.5 rounded-md text-xs font-medium text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
                   applicationToReview.action === "approved"
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
+                    ? "bg-emerald-500 hover:bg-emerald-600"
+                    : "bg-red-500 hover:bg-red-600"
                 }`}
               >
                 {applicationToReview.action === "approved"
@@ -1644,6 +1283,28 @@ const LoanApplications: NextPage = () => {
                   : "Reject"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {showImageModal && selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center">
+            <img
+              src={selectedImage}
+              alt="Document"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            />
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="absolute top-2 right-2 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
       )}

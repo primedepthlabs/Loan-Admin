@@ -17,7 +17,7 @@ interface PlacementResult {
  */
 export async function findNextAvailablePosition(
   sponsorId: string,
-  planId: string
+  planId: string,
 ): Promise<PlacementResult> {
   try {
     // Get plan settings (pairing limit, max depth)
@@ -74,7 +74,7 @@ export async function findNextAvailablePosition(
       sponsorId,
       planId,
       maxDepth,
-      pairingLimit
+      pairingLimit,
     );
     return nextAvailable;
   } catch (error) {
@@ -93,7 +93,7 @@ async function findNextAvailableInDownline(
   rootAgentId: string,
   planId: string,
   maxDepth: number,
-  pairingLimit: number
+  pairingLimit: number,
 ): Promise<PlacementResult> {
   try {
     // Get all positions in this plan's tree
@@ -117,7 +117,7 @@ async function findNextAvailableInDownline(
       visited.add(currentAgentId);
 
       const currentPosition = allPositions.find(
-        (p) => p.agent_id === currentAgentId
+        (p) => p.agent_id === currentAgentId,
       );
       if (!currentPosition) continue;
 
@@ -162,7 +162,7 @@ async function findNextAvailableInDownline(
 export async function placeAgentInBinaryTree(
   agentId: string,
   planId: string,
-  sponsorId: string | null
+  sponsorId: string | null,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // FIX 1: Check if agent already exists in this plan's tree
@@ -191,6 +191,15 @@ export async function placeAgentInBinaryTree(
         error: "Agent must own the plan before being placed in tree",
       };
     }
+
+    // Get pairing limit for this plan
+    const { data: planSettings } = await supabase
+      .from("plan_chain_settings")
+      .select("pairing_limit")
+      .eq("plan_id", planId)
+      .single();
+
+    const pairingLimit = planSettings?.pairing_limit || 2;
 
     // Handle root placement (no sponsor)
     if (!sponsorId) {
@@ -230,6 +239,7 @@ export async function placeAgentInBinaryTree(
         parent_id: null,
         position: "root",
         level: 1,
+        pairing_limit: pairingLimit,
       });
 
       if (error) throw error;
@@ -288,6 +298,7 @@ export async function placeAgentInBinaryTree(
         parent_id: parent_id,
         position: position,
         level: level,
+        pairing_limit: pairingLimit,
       });
 
     if (insertError) throw insertError;
@@ -317,7 +328,7 @@ export async function placeAgentInBinaryTree(
  */
 export async function getBinaryTreeForPlan(
   agentId: string,
-  planId: string
+  planId: string,
 ): Promise<any> {
   try {
     const { data: allPositions, error } = await supabase

@@ -11,6 +11,7 @@ import {
   QrCode,
   Loader2,
   AlertCircle,
+  Image,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -71,7 +72,7 @@ const AdminPaymentSettings: React.FC = () => {
     if (!file) return;
 
     const validTypes = ["image/jpeg", "image/jpg", "image/png"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
       setError("Please upload a valid image file (JPG, JPEG, PNG)");
@@ -86,7 +87,6 @@ const AdminPaymentSettings: React.FC = () => {
     setQrCodeFile(file);
     setError("");
 
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setQrCodePreview(reader.result as string);
@@ -106,7 +106,6 @@ const AdminPaymentSettings: React.FC = () => {
     try {
       let qrCodeUrl = currentSettings?.qr_code_url || "";
 
-      // Upload new QR code if selected
       if (qrCodeFile) {
         const fileExtension = qrCodeFile.name.split(".").pop();
         const fileName = `payment-qr-${Date.now()}.${fileExtension}`;
@@ -130,7 +129,6 @@ const AdminPaymentSettings: React.FC = () => {
 
         qrCodeUrl = publicUrlData.publicUrl;
 
-        // Delete old QR code if exists
         if (currentSettings?.qr_code_url) {
           const oldFileName = currentSettings.qr_code_url.split("/").pop();
           if (oldFileName) {
@@ -139,9 +137,7 @@ const AdminPaymentSettings: React.FC = () => {
         }
       }
 
-      // Update or insert payment settings
       if (currentSettings) {
-        // Update existing
         const { error: updateError } = await supabase
           .from("payment_settings")
           .update({
@@ -157,7 +153,6 @@ const AdminPaymentSettings: React.FC = () => {
           return;
         }
       } else {
-        // Insert new
         const { error: insertError } = await supabase
           .from("payment_settings")
           .insert([
@@ -208,14 +203,14 @@ const AdminPaymentSettings: React.FC = () => {
     }, [onClose]);
 
     return (
-      <div className="fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-2 max-w-md animate-slide-in">
-        <CheckCircle className="w-5 h-5 flex-shrink-0" />
-        <span className="text-sm">{message}</span>
+      <div className="fixed top-4 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2 max-w-sm animate-in slide-in-from-top-2 duration-200">
+        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+        <span className="text-sm font-medium">{message}</span>
         <button
           onClick={onClose}
-          className="ml-2 text-white hover:text-gray-200"
+          className="ml-auto text-white/80 hover:text-white p-0.5 rounded hover:bg-white/10 transition-colors"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
     );
@@ -223,8 +218,11 @@ const AdminPaymentSettings: React.FC = () => {
 
   if (isFetching) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-yellow-600" />
+      <div className="flex items-center justify-center min-h-screen bg-[#F4F7FE]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[#A3AED0] text-sm font-medium">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -238,126 +236,172 @@ const AdminPaymentSettings: React.FC = () => {
         />
       )}
 
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-[#F4F7FE] p-3 sm:p-4">
+        <div className="max-w-4xl mx-auto space-y-3">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              Payment Management
-            </h1>
-            <p className="text-gray-600">
-              Configure payment QR code and amount for user registrations
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
-                <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-600">{error}</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-[#2B3674]">Payment Settings</h1>
+              <p className="text-xs text-[#A3AED0]">Configure QR code and amount for registrations</p>
+            </div>
+            {currentSettings && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600">
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium">Configured</span>
               </div>
             )}
+          </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <p className="text-xs text-red-600 font-medium">{error}</p>
+              <button 
+                onClick={() => setError("")}
+                className="ml-auto text-red-400 hover:text-red-600 p-0.5"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Main Form Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100/50 overflow-hidden">
             {/* Payment Amount Section */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <IndianRupee className="inline w-4 h-4 mr-1" />
-                Payment Amount (₹)
-              </label>
-              <input
-                type="number"
-                value={paymentAmount}
-                onChange={(e) => setPaymentAmount(e.target.value)}
-                min="0"
-                step="1"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                placeholder="Enter amount (e.g., 500)"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                This amount will be displayed to users during registration
-              </p>
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[#F4F7FE] to-[#E3F2FD] flex items-center justify-center">
+                  <IndianRupee className="w-3.5 h-3.5 text-[#03A9F4]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#2B3674]">Payment Amount</p>
+                  <p className="text-[10px] text-[#A3AED0]">Amount shown to users during registration</p>
+                </div>
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A3AED0] text-sm">₹</span>
+                <input
+                  type="number"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  min="0"
+                  step="1"
+                  className="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] font-medium text-[#2B3674] transition-all"
+                  placeholder="500"
+                />
+              </div>
             </div>
 
-            {/* QR Code Upload Section */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <QrCode className="inline w-4 h-4 mr-1" />
-                Payment QR Code
-              </label>
-
-              {/* Current/Preview QR Code */}
-              {qrCodePreview && (
-                <div className="mb-4 relative">
-                  <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50 inline-block">
-                    <img
-                      src={qrCodePreview}
-                      alt="Payment QR Code"
-                      className="w-64 h-64 object-contain"
-                    />
-                  </div>
-                  {qrCodeFile && (
-                    <button
-                      onClick={handleRemoveQrCode}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
-                      title="Remove new QR code"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                  <p className="text-xs text-gray-500 mt-2">
-                    {qrCodeFile
-                      ? "New QR code (not saved yet)"
-                      : "Current QR code"}
-                  </p>
+            {/* QR Code Section */}
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[#F4F7FE] to-[#E3F2FD] flex items-center justify-center">
+                  <QrCode className="w-3.5 h-3.5 text-[#03A9F4]" />
                 </div>
-              )}
+                <div>
+                  <p className="text-sm font-medium text-[#2B3674]">Payment QR Code</p>
+                  <p className="text-[10px] text-[#A3AED0]">Upload your payment QR code image</p>
+                </div>
+              </div>
 
-              {/* Upload Button */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-yellow-400 hover:bg-yellow-50 transition-colors">
-                <Upload className="mx-auto w-12 h-12 text-gray-400 mb-3" />
-                <input
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png"
-                  onChange={handleQrCodeChange}
-                  className="hidden"
-                  id="qrCodeUpload"
-                />
-                <label
-                  htmlFor="qrCodeUpload"
-                  className="cursor-pointer text-yellow-600 hover:text-yellow-500 font-medium"
-                >
-                  {qrCodePreview ? "Change QR Code" : "Click to upload QR Code"}
-                </label>
-                <p className="text-xs text-gray-500 mt-2">
-                  JPG, JPEG, PNG up to 5MB
-                </p>
+              <div className="flex gap-4">
+                {/* QR Preview */}
+                <div className="flex-shrink-0">
+                  {qrCodePreview ? (
+                    <div className="relative group">
+                      <div className="w-28 h-28 rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm">
+                        <img
+                          src={qrCodePreview}
+                          alt="Payment QR"
+                          className="w-full h-full object-contain p-1"
+                        />
+                      </div>
+                      {qrCodeFile && (
+                        <button
+                          onClick={handleRemoveQrCode}
+                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors shadow-sm"
+                          title="Remove"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                      <p className="text-[9px] text-center text-[#A3AED0] mt-1.5 font-medium">
+                        {qrCodeFile ? "New (unsaved)" : "Current"}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="w-28 h-28 rounded-lg border border-dashed border-gray-200 flex flex-col items-center justify-center bg-gray-50">
+                      <Image className="w-6 h-6 text-[#A3AED0] mb-1" />
+                      <p className="text-[9px] text-[#A3AED0]">No QR</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Upload Area */}
+                <div className="flex-1">
+                  <label
+                    htmlFor="qrCodeUpload"
+                    className="flex flex-col items-center justify-center h-28 border border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-[#03A9F4] hover:bg-[#F4F7FE]/50 transition-all group"
+                  >
+                    <Upload className="w-5 h-5 text-[#A3AED0] mb-1.5 group-hover:text-[#03A9F4] transition-colors" />
+                    <span className="text-xs font-medium text-[#03A9F4]">
+                      {qrCodePreview ? "Change QR" : "Upload QR"}
+                    </span>
+                    <span className="text-[9px] text-[#A3AED0] mt-0.5">
+                      JPG, PNG up to 5MB
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={handleQrCodeChange}
+                      className="hidden"
+                      id="qrCodeUpload"
+                    />
+                  </label>
+                </div>
               </div>
             </div>
 
             {/* Save Button */}
-            <div className="flex justify-end">
+            <div className="px-4 py-3 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+              <p className="text-[10px] text-[#A3AED0]">
+                {currentSettings ? "Last updated: Settings saved" : "No settings saved yet"}
+              </p>
               <button
                 onClick={handleSave}
                 disabled={isLoading || !paymentAmount}
-                className={`px-6 py-3 rounded-lg font-semibold text-white transition-all duration-200 flex items-center ${
+                className={`px-4 py-1.5 rounded-md text-xs font-medium text-white transition-all duration-200 flex items-center gap-1.5 shadow-sm ${
                   isLoading || !paymentAmount
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-yellow-500 hover:bg-yellow-600 shadow-md hover:shadow-lg"
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-[#03A9F4] hover:bg-[#0288D1] hover:shadow-md"
                 }`}
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="w-5 h-5 mr-2" />
+                    <Save className="w-3.5 h-3.5" />
                     Save Settings
                   </>
                 )}
               </button>
+            </div>
+          </div>
+
+          {/* Info Card */}
+          <div className="bg-gradient-to-r from-[#03A9F4]/5 to-transparent rounded-lg p-3 border border-[#03A9F4]/10">
+            <div className="flex gap-2">
+              <AlertCircle className="w-4 h-4 text-[#03A9F4] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-medium text-[#2B3674]">How it works</p>
+                <p className="text-[10px] text-[#A3AED0] mt-0.5 leading-relaxed">
+                  The payment amount and QR code you configure here will be displayed to users during their registration process. Make sure the QR code is clear and scannable.
+                </p>
+              </div>
             </div>
           </div>
         </div>

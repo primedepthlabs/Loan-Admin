@@ -378,27 +378,24 @@ export default function PlanResourcesManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+    <div className="min-h-screen bg-[#F4F7FE] p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-8 bg-white shadow-sm p-6 border-l-4 border-[#03A9F4]">
+          <h1 className="text-3xl font-bold text-[#2B3674] uppercase tracking-wide">
             Plan Resources Management
           </h1>
-          <p className="text-sm text-gray-600">
-            Manage videos, PDFs, and chain system settings for all plans
-          </p>
         </div>
 
         {/* Tabs */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex gap-2 bg-white rounded-lg p-1 shadow-sm">
+          <div className="flex gap-2 bg-white shadow-sm p-1">
             <button
               onClick={() => setActiveTab("videos")}
-              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-all ${
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-wide transition-all ${
                 activeTab === "videos"
-                  ? "bg-gray-900 text-white shadow-md"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-[#03A9F4] text-white shadow-sm"
+                  : "text-[#A3AED0] hover:text-[#2B3674] hover:bg-[#F4F7FE]"
               }`}
             >
               <Video className="w-4 h-4" />
@@ -406,10 +403,10 @@ export default function PlanResourcesManagement() {
             </button>
             <button
               onClick={() => setActiveTab("pdfs")}
-              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-all ${
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-wide transition-all ${
                 activeTab === "pdfs"
-                  ? "bg-gray-900 text-white shadow-md"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-[#03A9F4] text-white shadow-sm"
+                  : "text-[#A3AED0] hover:text-[#2B3674] hover:bg-[#F4F7FE]"
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -417,10 +414,10 @@ export default function PlanResourcesManagement() {
             </button>
             <button
               onClick={() => setActiveTab("chains")}
-              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-all ${
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-wide transition-all ${
                 activeTab === "chains"
-                  ? "bg-gray-900 text-white shadow-md"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-[#03A9F4] text-white shadow-sm"
+                  : "text-[#A3AED0] hover:text-[#2B3674] hover:bg-[#F4F7FE]"
               }`}
             >
               <Network className="w-4 h-4" />
@@ -431,7 +428,7 @@ export default function PlanResourcesManagement() {
           {activeTab !== "chains" && (
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#03A9F4] text-white text-sm font-bold uppercase tracking-wide hover:bg-[#25476A] transition-all shadow-sm"
             >
               <Plus className="w-4 h-4" />
               Add {activeTab === "videos" ? "Video" : "PDF"}
@@ -444,8 +441,8 @@ export default function PlanResourcesManagement() {
           <>
             {loading ? (
               <div className="text-center py-16">
-                <div className="animate-spin rounded-full h-10 w-10 border-3 border-gray-300 border-t-gray-900 mx-auto"></div>
-                <p className="text-sm text-gray-600 mt-3">Loading...</p>
+                <div className="animate-spin h-10 w-10 border-4 border-[#03A9F4] border-t-transparent mx-auto"></div>
+                <p className="text-sm text-[#A3AED0] mt-3 font-medium">Loading...</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -74,7 +74,7 @@ export default function CoursePayment() {
           user_name: usersMap.get(p.user_id)?.name ?? "Unknown",
           user_email: usersMap.get(p.user_id)?.email ?? "N/A",
           plan_name: plansMap.get(p.plan_id)?.plan_name ?? "Unknown Plan",
-        }))
+        })),
       );
     } catch (e: any) {
       setError(e.message);
@@ -85,7 +85,7 @@ export default function CoursePayment() {
 
   const updatePaymentStatus = async (
     paymentId: string,
-    status: "verified" | "rejected"
+    status: "verified" | "rejected",
   ) => {
     try {
       const { data: auth } = await supabase.auth.getUser();
@@ -166,7 +166,7 @@ export default function CoursePayment() {
             user_id: userRow.id,
             sponsor_id: sponsorId,
             referral_code: Math.floor(
-              10000000 + Math.random() * 90000000
+              10000000 + Math.random() * 90000000,
             ).toString(),
             is_active: true,
           })
@@ -176,46 +176,52 @@ export default function CoursePayment() {
         if (error) throw error;
         agentId = newAgent.id;
       }
-      await supabase
-        .from("users")
-        .update({ is_agent: true })
-        .eq("id", userRow.id);
-      // 4. Assign plan
-      const { data: existingPlan } = await supabase
-        .from("agent_plans")
-        .select("id, is_active")
-        .eq("agent_id", agentId)
-        .eq("plan_id", payment.plan_id)
-        .maybeSingle();
 
-      if (!existingPlan) {
-        await supabase.from("agent_plans").insert({
-          agent_id: agentId,
-          plan_id: payment.plan_id,
-          is_active: true,
-        });
-      } else if (!existingPlan.is_active) {
-        await supabase
-          .from("agent_plans")
-          .update({ is_active: true })
-          .eq("id", existingPlan.id);
+      // 4. ✅ ASSIGN PLAN - USE UPSERT TO HANDLE DUPLICATES
+      const { data: assignedPlan, error: planError } = await supabase
+        .from("agent_plans")
+        .upsert(
+          {
+            agent_id: agentId,
+            plan_id: payment.plan_id,
+            is_active: true,
+            purchased_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "agent_id,plan_id",
+            ignoreDuplicates: false, // Update if exists
+          },
+        )
+        .select()
+        .single();
+
+      if (planError) {
+        console.error("❌ Plan assignment error:", planError);
+        throw new Error(`Failed to assign plan: ${planError.message}`);
       }
 
+      console.log("✅ Plan assigned successfully:", assignedPlan.id);
+
+      // Small delay to ensure trigger completes
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       // 5. Place in binary tree
+      // ✅ VERIFY PLAN IS SAVED FIRST
+
+      // 5. ✅ PLACE IN BINARY TREE
       const placement = await placeAgentInBinaryTree(
         agentId,
         payment.plan_id,
-        sponsorId
+        sponsorId,
       );
 
       if (!placement.success) {
-        await supabase
-          .from("agent_plans")
-          .delete()
-          .eq("agent_id", agentId)
-          .eq("plan_id", payment.plan_id);
+        console.error("❌ Placement error:", placement.error);
+        // Don't delete the plan - just throw error so admin can retry
         throw new Error(placement.error);
       }
+
+      console.log("✅ Agent placed in binary tree");
       //
       console.log("Calculating commissions for verified payment...");
 
@@ -231,7 +237,7 @@ export default function CoursePayment() {
           paymentId,
           agentId,
           payment.plan_id,
-          payment.payment_amount
+          payment.payment_amount,
         );
 
         if (commissionResult.success) {
@@ -239,7 +245,7 @@ export default function CoursePayment() {
         } else {
           console.error(
             "⚠️ Commission calculation failed:",
-            commissionResult.message
+            commissionResult.message,
           );
         }
       } else {
@@ -252,14 +258,16 @@ export default function CoursePayment() {
         payment.id, // payment_id
         agentId, // purchasing agent
         payment.plan_id, // plan_id
-        payment.payment_amount // ORIGINAL PAID AMOUNT
+        payment.payment_amount, // ORIGINAL PAID AMOUNT
       );
 
       if (!cashbackResult.success) {
         console.error("Cashback error:", cashbackResult.message);
       }
       //
-      // ✅ LOCK 80% AMOUNT UNTIL PAIRING COMPLETE
+      // 8. ✅ UPDATE LOCKED AMOUNT IN REWARD TABLE
+      // The trigger already created the record with plan.amount * 0.8
+      // Now update it with actual payment_amount * 0.8
       const { data: planSettings } = await supabase
         .from("plan_chain_settings")
         .select("pairing_limit")
@@ -268,17 +276,18 @@ export default function CoursePayment() {
 
       const pairingLimit = planSettings?.pairing_limit ?? 1;
 
-      await supabase.from("agent_plan_rewards").upsert(
-        {
-          agent_id: agentId,
-          plan_id: payment.plan_id,
+      const { error: rewardUpdateError } = await supabase
+        .from("agent_plan_rewards")
+        .update({
           locked_amount: payment.payment_amount * 0.8,
           pairing_limit: pairingLimit,
-          pairing_completed: 0,
-          is_released: false,
-        },
-        { onConflict: "agent_id,plan_id" }
-      );
+        })
+        .eq("agent_id", agentId)
+        .eq("plan_id", payment.plan_id);
+
+      if (rewardUpdateError) {
+        console.error("⚠️ Reward update error:", rewardUpdateError);
+      }
 
       // ✅ 6. FINAL: mark payment verified
       await supabase
@@ -299,23 +308,29 @@ export default function CoursePayment() {
   /* ---------------- UI (UNCHANGED) ---------------- */
 
   return (
-    <div className="min-h-screen bg-white p-4">
+    <div className="min-h-screen bg-[#F4F7FE] p-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-xl font-semibold mb-4">Payment Verifications</h1>
+        <div className="bg-white shadow-sm p-6 mb-4 border-l-4 border-[#03A9F4]">
+          <h1 className="text-xl font-bold text-[#2B3674] uppercase tracking-wide">
+            Payment Verifications
+          </h1>
+        </div>
 
         {error && (
-          <div className="mb-3 p-3 bg-red-50 text-red-700 text-xs">{error}</div>
+          <div className="mb-3 p-3 bg-red-50 text-red-700 text-xs border-l-4 border-red-500 font-bold">
+            {error}
+          </div>
         )}
 
-        <div className="flex gap-2 mb-4 border-b">
+        <div className="flex gap-2 mb-4 bg-white shadow-sm p-2">
           {["pending", "verified", "rejected", "all"].map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}
-              className={`px-3 py-2 text-xs border-b-2 ${
+              className={`px-3 py-2 text-xs font-bold uppercase tracking-wide ${
                 filter === s
-                  ? "border-black font-semibold"
-                  : "border-transparent text-gray-500"
+                  ? "bg-[#03A9F4] text-white"
+                  : "text-[#A3AED0] hover:bg-[#F4F7FE]"
               }`}
             >
               {s}
@@ -324,39 +339,67 @@ export default function CoursePayment() {
         </div>
 
         {loading ? (
-          <div className="text-center py-6">Loading…</div>
+          <div className="text-center py-6">
+            <div className="w-8 h-8 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="text-[#A3AED0] mt-2 text-sm">Loading…</p>
+          </div>
         ) : payments.length === 0 ? (
-          <div className="text-center py-6 text-sm text-gray-500">
+          <div className="text-center py-6 text-sm text-[#A3AED0] bg-white shadow-sm">
             No payments found
           </div>
         ) : (
-          <table className="w-full text-xs">
+          <table className="w-full text-xs bg-white shadow-sm">
             <thead>
-              <tr className="border-b text-left">
-                <th>User</th>
-                <th>Plan</th>
-                <th className="text-right">Amount</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th className="text-center">Actions</th>
+              <tr className="border-b text-left bg-[#F4F7FE]">
+                <th className="p-3 font-bold text-[#2B3674] uppercase">User</th>
+                <th className="p-3 font-bold text-[#2B3674] uppercase">Plan</th>
+                <th className="p-3 font-bold text-[#2B3674] uppercase text-right">
+                  Amount
+                </th>
+                <th className="p-3 font-bold text-[#2B3674] uppercase">
+                  Status
+                </th>
+                <th className="p-3 font-bold text-[#2B3674] uppercase">Date</th>
+                <th className="p-3 font-bold text-[#2B3674] uppercase text-center">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {payments.map((p) => (
-                <tr key={p.id} className="border-b">
-                  <td>
-                    <div>{p.user_name}</div>
-                    <div className="text-[10px] text-gray-500">
+                <tr key={p.id} className="border-b hover:bg-[#F4F7FE]">
+                  <td className="p-3">
+                    <div className="font-bold text-[#2B3674]">
+                      {p.user_name}
+                    </div>
+                    <div className="text-[10px] text-[#A3AED0]">
                       {p.user_email}
                     </div>
                   </td>
-                  <td>{p.plan_name}</td>
-                  <td className="text-right">₹{p.payment_amount}</td>
-                  <td>{p.payment_status}</td>
-                  <td>{new Date(p.submitted_at).toLocaleDateString()}</td>
-                  <td className="text-center space-x-1">
+                  <td className="p-3 text-[#2B3674]">{p.plan_name}</td>
+                  <td className="p-3 text-right font-bold text-[#2B3674]">
+                    ₹{p.payment_amount}
+                  </td>
+                  <td className="p-3">
+                    <span
+                      className={`px-2 py-1 text-xs font-bold ${
+                        p.payment_status === "verified"
+                          ? "bg-green-100 text-green-700"
+                          : p.payment_status === "rejected"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {p.payment_status}
+                    </span>
+                  </td>
+                  <td className="p-3 text-[#A3AED0]">
+                    {new Date(p.submitted_at).toLocaleDateString()}
+                  </td>
+                  <td className="p-3 text-center space-x-1">
                     <button
                       onClick={() => setSelectedImage(p.payment_screenshot_url)}
+                      className="text-[#03A9F4] hover:text-[#25476A]"
                     >
                       <Eye size={14} />
                     </button>
@@ -364,11 +407,13 @@ export default function CoursePayment() {
                       <>
                         <button
                           onClick={() => updatePaymentStatus(p.id, "verified")}
+                          className="text-green-600 hover:text-green-700"
                         >
                           <CheckCircle size={14} />
                         </button>
                         <button
                           onClick={() => updatePaymentStatus(p.id, "rejected")}
+                          className="text-red-600 hover:text-red-700"
                         >
                           <XCircle size={14} />
                         </button>
@@ -389,11 +434,11 @@ export default function CoursePayment() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white p-4 rounded max-w-3xl"
+            className="bg-white p-4 shadow-lg max-w-3xl"
           >
             <button
               onClick={() => setSelectedImage(null)}
-              className="float-right"
+              className="float-right text-[#2B3674] hover:text-[#03A9F4]"
             >
               <X />
             </button>

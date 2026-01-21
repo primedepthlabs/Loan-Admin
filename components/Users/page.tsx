@@ -1,192 +1,25 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import { NextPage } from "next";
 import { supabase } from "@/lib/supabaseClient";
+import {
+  Search,
+  Eye,
+  Check,
+  X,
+  Clock,
+  Filter,
+  RefreshCw,
+  Image,
+  FileText,
+  Users as UsersIcon,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
-const SearchIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-    />
-  </svg>
-);
-
-const EyeIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-    />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M5 13l4 4L19 7"
-    />
-  </svg>
-);
-
-const XIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M6 18L18 6M6 6l12 12"
-    />
-  </svg>
-);
-
-const ApproveIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <circle cx="12" cy="12" r="9" strokeWidth={2} />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 12l2 2 4-4"
-    />
-  </svg>
-);
-
-const ClockIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-);
-
-const FilterIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z"
-    />
-  </svg>
-);
-
-const RefreshIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-    />
-  </svg>
-);
-
-const ImageIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-    />
-  </svg>
-);
-
-const DocumentIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-    />
-  </svg>
-);
-
-const IndianRupeeIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 8h6M9 12h6m-3 8l-3-3h6m-6 0h6m-3-5a3 3 0 100-6 3 3 0 000 6z"
-    />
-  </svg>
-);
-
-// TypeScript interfaces
 interface User {
   id: string;
   name: string;
@@ -204,13 +37,6 @@ interface User {
   kyc_approved_at?: string;
   kyc_rejected_at?: string;
   kyc_rejection_reason?: string;
-  // Payment fields
-  payment_screenshot_url?: string;
-  payment_status?: "pending" | "approved" | "rejected";
-  payment_amount?: number;
-  payment_submitted_at?: string;
-  payment_approved_at?: string;
-  payment_rejected_at?: string;
   created_at: string;
   updated_at: string;
   auth_user_id: string;
@@ -223,22 +49,15 @@ interface ServiceResponse<T> {
   user?: T;
 }
 
-// Utility function to get proper image URL
 const getImageUrl = (path: string): string => {
   if (!path) return "";
-
-  // If it's already a full URL, return as is
   if (path.startsWith("http")) {
     return path;
   }
-
-  // If it's a path, get the public URL
   const { data } = supabase.storage.from("user-documents").getPublicUrl(path);
-
   return data.publicUrl;
 };
 
-// Service functions
 const userService = {
   getAllUsers: async (): Promise<ServiceResponse<User>> => {
     try {
@@ -273,7 +92,7 @@ const userService = {
   updateKycStatus: async (
     userId: string,
     newStatus: string,
-    rejectionReason?: string
+    rejectionReason?: string,
   ): Promise<ServiceResponse<User>> => {
     try {
       const updateData: any = {
@@ -308,37 +127,6 @@ const userService = {
       return { success: false, error: (error as Error).message };
     }
   },
-
-  updatePaymentStatus: async (
-    userId: string,
-    newStatus: "approved" | "rejected"
-  ): Promise<ServiceResponse<User>> => {
-    try {
-      const updateData: any = {
-        payment_status: newStatus,
-        updated_at: new Date().toISOString(),
-      };
-      if (newStatus === "approved") {
-        updateData.payment_approved_at = new Date().toISOString();
-        updateData.can_login = true;
-      } else if (newStatus === "rejected") {
-        updateData.payment_rejected_at = new Date().toISOString();
-        updateData.can_login = false;
-      }
-
-      const { data, error } = await supabase
-        .from("users")
-        .update(updateData)
-        .eq("id", userId)
-        .select();
-
-      if (error) throw error;
-      return { success: true, user: data?.[0] };
-    } catch (error) {
-      console.error("Update payment status error:", error);
-      return { success: false, error: (error as Error).message };
-    }
-  },
 };
 
 const Users: NextPage = () => {
@@ -348,7 +136,6 @@ const Users: NextPage = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserModal, setShowUserModal] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -359,12 +146,12 @@ const Users: NextPage = () => {
   const [showRejectionModal, setShowRejectionModal] = useState<boolean>(false);
   const [userToReject, setUserToReject] = useState<string | null>(null);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   const handleUpdateLoginPermission = async (
     userId: string,
-    canLogin: boolean
+    canLogin: boolean,
   ) => {
     const result = await userService.updateLoginPermission(userId, canLogin);
     if (result.success && result.user) {
@@ -375,20 +162,6 @@ const Users: NextPage = () => {
     }
   };
 
-  const handleUpdatePaymentStatus = async (
-    userId: string,
-    status: "approved" | "rejected"
-  ) => {
-    const result = await userService.updatePaymentStatus(userId, status);
-    if (result.success && result.user) {
-      setUsers(users.map((u) => (u.id === userId ? result.user! : u)));
-      if (selectedUser?.id === userId) setSelectedUser(result.user!);
-    } else {
-      setError(result.error || "Failed to update payment status");
-    }
-  };
-
-  // Load users on component mount
   useEffect(() => {
     loadUsers();
   }, []);
@@ -419,7 +192,6 @@ const Users: NextPage = () => {
     setRefreshing(false);
   };
 
-  // Filter and search logic
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -429,13 +201,9 @@ const Users: NextPage = () => {
     const matchesKycFilter =
       filterStatus === "all" || user.kyc_status === filterStatus;
 
-    const matchesPaymentFilter =
-      paymentFilter === "all" || user.payment_status === paymentFilter;
-
-    return matchesSearch && matchesKycFilter && matchesPaymentFilter;
+    return matchesSearch && matchesKycFilter;
   });
 
-  // Pagination
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
@@ -444,22 +212,20 @@ const Users: NextPage = () => {
   const handleUpdateKycStatus = async (
     userId: string,
     newStatus: string,
-    rejectionReason?: string
+    rejectionReason?: string,
   ): Promise<void> => {
     try {
       const result = await userService.updateKycStatus(
         userId,
         newStatus,
-        rejectionReason
+        rejectionReason,
       );
 
       if (result.success && result.user) {
-        // Update local state
         setUsers(
-          users.map((user) => (user.id === userId ? result.user! : user))
+          users.map((user) => (user.id === userId ? result.user! : user)),
         );
 
-        // Update selected user if modal is open
         if (selectedUser && selectedUser.id === userId) {
           setSelectedUser(result.user!);
         }
@@ -482,36 +248,35 @@ const Users: NextPage = () => {
     setShowUserModal(false);
   };
 
-  const handleImageError = (imageSrc: string, error: any) => {
-    console.error("Failed to load image:", imageSrc, error);
+  const handleImageError = (imageSrc: string) => {
     setImageLoadErrors((prev) => new Set([...prev, imageSrc]));
   };
 
-  const getStatusColor = (status: string): string => {
+  const getStatusStyle = (status: string) => {
     switch (status) {
       case "approved":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-emerald-50 text-emerald-600 border-emerald-100";
       case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-amber-50 text-amber-600 border-amber-100";
       case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-50 text-red-600 border-red-100";
       case "under_review":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-50 text-blue-600 border-blue-100";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-50 text-gray-600 border-gray-100";
     }
   };
 
-  const getStatusIcon = (status: string): React.ReactNode => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case "approved":
-        return <CheckIcon />;
+        return <Check className="w-3 h-3" />;
       case "pending":
-        return <ClockIcon />;
+        return <Clock className="w-3 h-3" />;
       case "rejected":
-        return <XIcon />;
+        return <X className="w-3 h-3" />;
       case "under_review":
-        return <EyeIcon />;
+        return <Eye className="w-3 h-3" />;
       default:
         return null;
     }
@@ -522,19 +287,7 @@ const Users: NextPage = () => {
       day: "2-digit",
       month: "short",
       year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
-  };
-
-  const getTotalDocuments = (user: User): number => {
-    return (
-      (user.aadhaar_front_photos?.length || 0) +
-      (user.aadhaar_back_photos?.length || 0) +
-      (user.pan_card_photos?.length || 0) +
-      (user.bank_passbook_photos?.length || 0) +
-      (user.passport_photo_urls?.length || 0)
-    );
   };
 
   const statusCounts = {
@@ -545,32 +298,22 @@ const Users: NextPage = () => {
     under_review: users.filter((u) => u.kyc_status === "under_review").length,
   };
 
-  const paymentCounts = {
-    all: users.length,
-    approved: users.filter((u) => u.payment_status === "approved").length,
-    pending: users.filter((u) => u.payment_status === "pending").length,
-    rejected: users.filter((u) => u.payment_status === "rejected").length,
-  };
-
   const DocumentSection = ({
     title,
     photos,
-    icon,
   }: {
     title: string;
     photos: string[];
-    icon: React.ReactNode;
   }) => (
-    <div className="border rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-3">
-        {icon}
-        <h4 className="font-medium text-gray-700">{title}</h4>
-        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-          {photos?.length || 0} photo{(photos?.length || 0) !== 1 ? "s" : ""}
+    <div className="bg-gray-50 rounded-lg p-3">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium text-[#2B3674]">{title}</p>
+        <span className="text-[9px] px-1.5 py-0.5 bg-[#03A9F4]/10 text-[#03A9F4] rounded font-medium">
+          {photos?.length || 0}
         </span>
       </div>
       {photos && photos.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           {photos.map((photoPath, index) => {
             const imageUrl = getImageUrl(photoPath);
             const hasError = imageLoadErrors.has(imageUrl);
@@ -578,370 +321,247 @@ const Users: NextPage = () => {
             return (
               <div key={index} className="relative group">
                 {hasError ? (
-                  <div className="w-full h-20 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-red-300">
-                    <div className="text-center">
-                      <XIcon />
-                      <p className="text-xs text-red-600 mt-1">
-                        Failed to load
-                      </p>
-                    </div>
+                  <div className="w-full h-12 bg-gray-200 rounded flex items-center justify-center">
+                    <XCircle className="w-4 h-4 text-red-400" />
                   </div>
                 ) : (
-                  <>
-                    <img
-                      src={imageUrl}
-                      alt={`${title} ${index + 1}`}
-                      className="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => {
-                        setSelectedImage(imageUrl);
-                        setShowImageModal(true);
-                      }}
-                      onError={(e) => handleImageError(imageUrl, e)}
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <div className="text-white">
-                        <EyeIcon />
-                      </div>
-                    </div>
-                  </>
+                  <img
+                    src={imageUrl}
+                    alt={`${title} ${index + 1}`}
+                    className="w-full h-12 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => {
+                      setSelectedImage(imageUrl);
+                      setShowImageModal(true);
+                    }}
+                    onError={() => handleImageError(imageUrl)}
+                    loading="lazy"
+                  />
                 )}
               </div>
             );
           })}
         </div>
       ) : (
-        <p className="text-gray-500 text-sm">No photos uploaded</p>
+        <p className="text-[10px] text-[#A3AED0]">No photos</p>
       )}
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-3 py-2 sm:px-4 sm:py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center mr-3">
-                <img
-                  src="logo.png"
-                  alt="logo"
-                  className="w-6 h-6 rounded-full"
-                />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-800">
-                  Balaji Finance
-                </h1>
-              </div>
+    <div className="min-h-screen bg-[#F4F7FE] p-3 sm:p-4">
+      <div className="max-w-6xl mx-auto space-y-3">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#03A9F4] to-[#0288D1] flex items-center justify-center shadow-sm">
+              <UsersIcon className="w-4 h-4 text-white" />
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={refreshUsers}
-                disabled={refreshing}
-                className="flex items-center gap-2 text-gray-600 cursor-pointer hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
-                title="Refresh Users"
-              >
-                <div className={refreshing ? "animate-spin" : ""}>
-                  <RefreshIcon />
-                </div>
-                {refreshing ? "Refreshing..." : "Refresh"}
-              </button>
+            <div>
+              <h1 className="text-lg font-semibold text-[#2B3674]">Users</h1>
+              <p className="text-xs text-[#A3AED0]">
+                {users.length} registered users
+              </p>
             </div>
           </div>
+          <button
+            onClick={refreshUsers}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#03A9F4] bg-[#F4F7FE] rounded-md hover:bg-[#E3F2FD] transition-colors disabled:opacity-50"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`}
+            />
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Error Message */}
+        {/* Error */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
+            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-xs text-red-600 font-medium">{error}</p>
             <button
               onClick={() => setError("")}
-              className="text-red-500 hover:text-red-700 cursor-pointer text-xs mt-2 underline"
+              className="ml-auto text-red-400 hover:text-red-600 p-0.5"
             >
-              Dismiss
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        {/* Loading State */}
         {isLoading ? (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-            <p className="text-gray-500 text-lg">Loading users...</p>
+          <div className="bg-white rounded-lg shadow-sm p-12 flex flex-col items-center justify-center">
+            <div className="w-8 h-8 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" />
+            <p className="text-[#A3AED0] text-sm mt-3">Loading users...</p>
           </div>
         ) : (
           <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-500 text-xs font-medium">
-                      Total Users
-                    </p>
-                    <p className="text-xl font-semibold text-gray-800 mt-1">
-                      {statusCounts.all}
-                    </p>
-                  </div>
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                {
+                  label: "Total",
+                  count: statusCounts.all,
+                  color: "text-[#2B3674]",
+                  bg: "bg-white",
+                },
+                {
+                  label: "Approved",
+                  count: statusCounts.approved,
+                  color: "text-emerald-600",
+                  bg: "bg-emerald-50",
+                },
+                {
+                  label: "Pending",
+                  count: statusCounts.pending,
+                  color: "text-amber-600",
+                  bg: "bg-amber-50",
+                },
+                {
+                  label: "Rejected",
+                  count: statusCounts.rejected,
+                  color: "text-red-600",
+                  bg: "bg-red-50",
+                },
+              ].map((stat, idx) => (
+                <div
+                  key={idx}
+                  className={`${stat.bg} rounded-lg p-3 border border-gray-100/50`}
+                >
+                  <p className="text-[10px] text-[#A3AED0] uppercase font-medium">
+                    {stat.label}
+                  </p>
+                  <p className={`text-xl font-bold ${stat.color}`}>
+                    {stat.count}
+                  </p>
                 </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-500 text-xs font-medium">
-                      KYC Approved
-                    </p>
-                    <p className="text-xl font-semibold text-green-600 mt-1">
-                      {statusCounts.approved}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-500 text-xs font-medium">
-                      KYC Pending
-                    </p>
-                    <p className="text-xl font-semibold text-yellow-600 mt-1">
-                      {statusCounts.pending}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-500 text-xs font-medium">
-                      Payment Approved
-                    </p>
-                    <p className="text-xl font-semibold text-green-600 mt-1">
-                      {paymentCounts.approved}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-500 text-xs font-medium">
-                      Payment Pending
-                    </p>
-                    <p className="text-xl font-semibold text-yellow-600 mt-1">
-                      {paymentCounts.pending}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-500 text-xs font-medium">
-                      Payment Rejected
-                    </p>
-                    <p className="text-xl font-semibold text-red-600 mt-1">
-                      {paymentCounts.rejected}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* Filters and Search */}
-            <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-              <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                  {/* Search */}
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      <SearchIcon />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Search users..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-yellow-400 transition-colors w-full sm:w-64"
-                    />
-                  </div>
-
-                  {/* KYC Status Filter */}
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      <FilterIcon />
-                    </div>
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                      className="pl-10 pr-8 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-yellow-400 transition-colors appearance-none bg-white"
-                    >
-                      <option value="all">All KYC Status</option>
-                      <option value="approved">KYC Approved</option>
-                      <option value="pending">KYC Pending</option>
-                      <option value="under_review">KYC Under Review</option>
-                      <option value="rejected">KYC Rejected</option>
-                    </select>
-                  </div>
-
-                  {/* Payment Status Filter */}
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      <IndianRupeeIcon />
-                    </div>
-                    <select
-                      value={paymentFilter}
-                      onChange={(e) => setPaymentFilter(e.target.value)}
-                      className="pl-10 pr-8 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-yellow-400 transition-colors appearance-none bg-white"
-                    >
-                      <option value="all">All Payment Status</option>
-                      <option value="approved">Payment Approved</option>
-                      <option value="pending">Payment Pending</option>
-                      <option value="rejected">Payment Rejected</option>
-                    </select>
-                  </div>
+            {/* Filters */}
+            <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-100/50 flex flex-col sm:flex-row gap-2 items-center justify-between">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A3AED0]" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8 pr-3 py-1.5 w-full sm:w-48 border border-gray-200 rounded-md text-xs text-[#2B3674] focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] transition-all"
+                  />
                 </div>
-
-                <div className="text-sm text-gray-500">
-                  Showing {currentUsers.length} of {filteredUsers.length} users
+                <div className="relative">
+                  <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A3AED0]" />
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="pl-8 pr-6 py-1.5 border border-gray-200 rounded-md text-xs text-[#2B3674] focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] transition-all appearance-none bg-white"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="under_review">Review</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
                 </div>
               </div>
+              <p className="text-[10px] text-[#A3AED0]">
+                Showing {currentUsers.length} of {filteredUsers.length}
+              </p>
             </div>
 
-            {/* Users Table */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            {/* Table */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100/50 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">
-                        User Details
+                  <thead className="bg-gray-50/50 border-b border-gray-100">
+                    <tr>
+                      <th className="text-left py-2.5 px-4 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        User
                       </th>
-                      <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">
-                        Contact Info
+                      <th className="text-left py-2.5 px-4 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        Contact
                       </th>
-                      <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">
-                        KYC Status
+                      <th className="text-left py-2.5 px-4 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        Status
                       </th>
-                      <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">
-                        Payment
+                      <th className="text-left py-2.5 px-4 text-[10px] font-medium text-[#A3AED0] uppercase">
+                        Date
                       </th>
-                      <th className="text-left py-4 px-6 text-sm font-medium text-gray-700">
-                        Submitted
-                      </th>
-                      <th className="text-center py-4 px-6 text-sm font-medium text-gray-700">
+                      <th className="text-center py-2.5 px-4 text-[10px] font-medium text-[#A3AED0] uppercase">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {currentUsers.map((user: User) => (
+                  <tbody className="divide-y divide-gray-50">
+                    {currentUsers.map((user) => (
                       <tr
                         key={user.id}
-                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                        className="hover:bg-gray-50/50 transition-colors"
                       >
-                        <td className="py-4 px-6">
-                          <div>
-                            <p className="font-medium text-gray-800">
-                              {user.name}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Age: {user.age}
-                            </p>
-                          </div>
+                        <td className="py-2.5 px-4">
+                          <p className="text-sm font-medium text-[#2B3674]">
+                            {user.name}
+                          </p>
+                          <p className="text-[10px] text-[#A3AED0]">
+                            Age: {user.age}
+                          </p>
                         </td>
-
-                        <td className="py-4 px-6">
-                          <div>
-                            <p className="text-sm text-gray-800">
-                              {user.email}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {user.mobile_number}
-                            </p>
-                          </div>
+                        <td className="py-2.5 px-4">
+                          <p className="text-xs text-[#2B3674] truncate max-w-[150px]">
+                            {user.email}
+                          </p>
+                          <p className="text-[10px] text-[#A3AED0] font-mono">
+                            {user.mobile_number}
+                          </p>
                         </td>
-
-                        <td className="py-4 px-6">
+                        <td className="py-2.5 px-4">
                           <span
-                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                              user.kyc_status
-                            )}`}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded border ${getStatusStyle(user.kyc_status)}`}
                           >
                             {getStatusIcon(user.kyc_status)}
-                            {user.kyc_status.charAt(0).toUpperCase() +
-                              user.kyc_status.slice(1).replace("_", " ")}
+                            {user.kyc_status.replace("_", " ")}
                           </span>
                         </td>
-
-                        <td className="py-4 px-6">
-                          <div>
-                            <span
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                                user.payment_status || "pending"
-                              )}`}
-                            >
-                              {getStatusIcon(user.payment_status || "pending")}
-                              {user.payment_status
-                                ? user.payment_status.charAt(0).toUpperCase() +
-                                  user.payment_status.slice(1)
-                                : "Pending"}
-                            </span>
-                            {user.payment_amount && (
-                              <p className="text-xs text-gray-600 mt-1"></p>
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="py-4 px-6">
-                          <p className="text-sm text-gray-600">
+                        <td className="py-2.5 px-4">
+                          <p className="text-xs text-[#2B3674]">
                             {formatDate(
-                              user.kyc_submitted_at || user.created_at
+                              user.kyc_submitted_at || user.created_at,
                             )}
                           </p>
                         </td>
-
-                        <td className="py-4 px-6">
-                          <div className="flex items-center justify-center gap-2">
+                        <td className="py-2.5 px-4">
+                          <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => {
                                 setSelectedUser(user);
                                 setShowUserModal(true);
                               }}
-                              className="p-2 text-gray-600 hover:text-yellow-600 cursor-pointer hover:bg-yellow-50 rounded-lg transition-colors"
-                              title="View Details & Documents"
+                              className="p-1.5 text-[#03A9F4] hover:bg-[#F4F7FE] rounded transition-colors"
+                              title="View"
                             >
-                              <EyeIcon />
+                              <Eye className="w-3.5 h-3.5" />
                             </button>
                             {!user.can_login ? (
                               <button
                                 onClick={() =>
                                   handleUpdateLoginPermission(user.id, true)
                                 }
-                                className="p-2 text-emerald-600 hover:bg-emerald-50 cursor-pointer rounded-lg"
-                                title="Allow Login"
+                                className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                                title="Unblock"
                               >
-                                <ApproveIcon />
+                                <CheckCircle className="w-3.5 h-3.5" />
                               </button>
                             ) : (
                               <button
                                 onClick={() =>
                                   handleUpdateLoginPermission(user.id, false)
                                 }
-                                className="p-2 text-gray-600 hover:bg-gray-100 cursor-pointer rounded-lg"
-                                title="Block Login"
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                title="Block"
                               >
-                                <XIcon />
+                                <XCircle className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
@@ -954,400 +574,208 @@ const Users: NextPage = () => {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
-                      Page {currentPage} of {totalPages}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() =>
-                          setCurrentPage(Math.max(1, currentPage - 1))
-                        }
-                        disabled={currentPage === 1}
-                        className={`px-3 py-1 rounded ${
-                          currentPage === 1
-                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-white text-gray-600 hover:bg-gray-50 border cursor-pointer border-gray-200"
-                        }`}
-                      >
-                        Previous
-                      </button>
-                      <button
-                        onClick={() =>
-                          setCurrentPage(Math.min(totalPages, currentPage + 1))
-                        }
-                        disabled={currentPage === totalPages}
-                        className={`px-3 py-1 rounded ${
-                          currentPage === totalPages
-                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-white text-gray-600 hover:bg-gray-50 border cursor-pointer border-gray-200"
-                        }`}
-                      >
-                        Next
-                      </button>
-                    </div>
+                <div className="px-4 py-2.5 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+                  <p className="text-[10px] text-[#A3AED0]">
+                    Page {currentPage} of {totalPages}
+                  </p>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="p-1.5 text-[#2B3674] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="p-1.5 text-[#2B3674] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               )}
             </div>
-
-            {/* No results message */}
-            {filteredUsers.length === 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <SearchIcon />
-                </div>
-                <p className="text-gray-500 text-lg">No users found</p>
-                <p className="text-gray-400 text-sm mt-1">
-                  Try adjusting your search or filter criteria
-                </p>
-              </div>
-            )}
           </>
         )}
       </div>
 
       {/* User Details Modal */}
       {showUserModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-4xl rounded-xl shadow-lg max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {selectedUser.name}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  User Details, KYC & Payment Info
-                </p>
-              </div>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#03A9F4]/5 to-transparent">
+              <h3 className="text-sm font-semibold text-[#2B3674]">
+                User Details
+              </h3>
               <button
-                onClick={() => {
-                  setShowUserModal(false);
-                  setSelectedUser(null);
-                }}
-                className="text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
+                onClick={() => setShowUserModal(false)}
+                className="p-1 text-[#A3AED0] hover:text-[#2B3674] hover:bg-gray-100 rounded transition-colors"
               >
-                <XIcon />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="p-6 space-y-6">
-              {/* Personal Information */}
-              <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-4">
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Full Name
-                    </label>
-                    <p className="text-gray-800">{selectedUser.name}</p>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)] space-y-4">
+              {/* Profile Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-medium text-[#A3AED0] uppercase">
+                    Profile
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <p className="text-[9px] text-[#A3AED0] uppercase">
+                        Name
+                      </p>
+                      <p className="font-medium text-[#2B3674]">
+                        {selectedUser.name}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] text-[#A3AED0] uppercase">Age</p>
+                      <p className="font-medium text-[#2B3674]">
+                        {selectedUser.age}
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-[9px] text-[#A3AED0] uppercase">
+                        Email
+                      </p>
+                      <p className="font-medium text-[#2B3674] truncate">
+                        {selectedUser.email}
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-[9px] text-[#A3AED0] uppercase">
+                        Phone
+                      </p>
+                      <p className="font-medium text-[#2B3674]">
+                        {selectedUser.mobile_number}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Age
-                    </label>
-                    <p className="text-gray-800">{selectedUser.age} years</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Email
-                    </label>
-                    <p className="text-gray-800">{selectedUser.email}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Mobile Number
-                    </label>
-                    <p className="text-gray-800">
-                      {selectedUser.mobile_number}
-                    </p>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-[10px] font-medium text-[#A3AED0] uppercase">
+                    Status
+                  </p>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-[9px] text-[#A3AED0] uppercase mb-1">
+                        KYC Status
+                      </p>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded border ${getStatusStyle(selectedUser.kyc_status)}`}
+                      >
+                        {getStatusIcon(selectedUser.kyc_status)}
+                        {selectedUser.kyc_status.replace("_", " ")}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[9px] text-[#A3AED0] uppercase mb-1">
+                        Login
+                      </p>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded ${selectedUser.can_login ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}
+                      >
+                        {selectedUser.can_login ? "Allowed" : "Blocked"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Payment Information */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
-                  <IndianRupeeIcon />
-                  <span className="ml-2">Payment Information</span>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Payment Status
-                    </label>
-                    <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                        selectedUser.payment_status || "pending"
-                      )}`}
-                    >
-                      {getStatusIcon(selectedUser.payment_status || "pending")}
-                      {selectedUser.payment_status
-                        ? selectedUser.payment_status.charAt(0).toUpperCase() +
-                          selectedUser.payment_status.slice(1)
-                        : "Pending"}
-                    </span>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Payment Amount
-                    </label>
-                    <p className="text-gray-800 font-semibold">
-                      ₹{selectedUser.payment_amount || "N/A"}
-                    </p>
-                  </div>
-                  {selectedUser.payment_submitted_at && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">
-                        Submitted At
-                      </label>
-                      <p className="text-gray-800">
-                        {formatDate(selectedUser.payment_submitted_at)}
-                      </p>
-                    </div>
-                  )}
-                  {selectedUser.payment_approved_at && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">
-                        Approved At
-                      </label>
-                      <p className="text-gray-800">
-                        {formatDate(selectedUser.payment_approved_at)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Payment Screenshot */}
-                {selectedUser.payment_screenshot_url && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Payment Screenshot
-                    </label>
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                      <img
-                        src={getImageUrl(selectedUser.payment_screenshot_url)}
-                        alt="Payment Screenshot"
-                        className="w-full max-w-md h-auto object-contain rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => {
-                          setSelectedImage(
-                            getImageUrl(selectedUser.payment_screenshot_url!)
-                          );
-                          setShowImageModal(true);
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Payment Actions */}
-                {selectedUser.payment_status !== "approved" ? (
-                  // For pending and rejected - show Approve button (and Reject for pending only)
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">
-                      Payment Actions
-                    </h4>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => {
-                          handleUpdatePaymentStatus(
-                            selectedUser.id,
-                            "approved"
-                          );
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
-                      >
-                        <CheckIcon />
-                        Approve Payment
-                      </button>
-                      {selectedUser.payment_status === "pending" && (
-                        <button
-                          onClick={() => {
-                            handleUpdatePaymentStatus(
-                              selectedUser.id,
-                              "rejected"
-                            );
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
-                        >
-                          <XIcon />
-                          Reject Payment
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  // For approved - show only Reject button
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">
-                      Payment Actions
-                    </h4>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => {
-                          handleUpdatePaymentStatus(
-                            selectedUser.id,
-                            "rejected"
-                          );
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
-                      >
-                        <XIcon />
-                        Reject Payment
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* KYC Documents */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-800 mb-4">
-                  KYC Documents
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Documents */}
+              <div className="space-y-2">
+                <p className="text-[10px] font-medium text-[#A3AED0] uppercase">
+                  Documents
+                </p>
+                <div className="grid grid-cols-2 gap-2">
                   <DocumentSection
                     title="Aadhaar Front"
-                    photos={selectedUser.aadhaar_front_photos || []}
-                    icon={<DocumentIcon />}
+                    photos={selectedUser.aadhaar_front_photos}
                   />
                   <DocumentSection
                     title="Aadhaar Back"
-                    photos={selectedUser.aadhaar_back_photos || []}
-                    icon={<DocumentIcon />}
+                    photos={selectedUser.aadhaar_back_photos}
                   />
                   <DocumentSection
                     title="PAN Card"
-                    photos={selectedUser.pan_card_photos || []}
-                    icon={<DocumentIcon />}
+                    photos={selectedUser.pan_card_photos}
                   />
                   <DocumentSection
                     title="Bank Passbook"
-                    photos={selectedUser.bank_passbook_photos || []}
-                    icon={<DocumentIcon />}
+                    photos={selectedUser.bank_passbook_photos}
                   />
-                </div>
-                <div className="mt-4">
                   <DocumentSection
-                    title="Passport Photos"
-                    photos={selectedUser.passport_photo_urls || []}
-                    icon={<ImageIcon />}
+                    title="Passport Photo"
+                    photos={selectedUser.passport_photo_urls}
                   />
                 </div>
               </div>
+            </div>
 
-              {/* KYC Status Information */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-800 mb-4">
-                  KYC Status Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Current Status
-                    </label>
-                    <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                        selectedUser.kyc_status
-                      )}`}
-                    >
-                      {getStatusIcon(selectedUser.kyc_status)}
-                      {selectedUser.kyc_status.charAt(0).toUpperCase() +
-                        selectedUser.kyc_status.slice(1).replace("_", " ")}
-                    </span>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Submitted At
-                    </label>
-                    <p className="text-gray-800">
-                      {formatDate(
-                        selectedUser.kyc_submitted_at || selectedUser.created_at
-                      )}
-                    </p>
-                  </div>
-                  {selectedUser.kyc_approved_at && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">
-                        Approved At
-                      </label>
-                      <p className="text-gray-800">
-                        {formatDate(selectedUser.kyc_approved_at)}
-                      </p>
-                    </div>
-                  )}
-                  {selectedUser.kyc_rejected_at && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-1">
-                        Rejected At
-                      </label>
-                      <p className="text-gray-800">
-                        {formatDate(selectedUser.kyc_rejected_at)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                {selectedUser.kyc_rejection_reason && (
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Rejection Reason
-                    </label>
-                    <p className="text-red-700 bg-red-50 p-3 rounded-lg">
-                      {selectedUser.kyc_rejection_reason}
-                    </p>
-                  </div>
-                )}
-              </div>
+            <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end gap-2">
+              <button
+                onClick={() =>
+                  handleUpdateKycStatus(selectedUser.id, "approved")
+                }
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors"
+              >
+                Approve KYC
+              </button>
+              <button
+                onClick={() => {
+                  setUserToReject(selectedUser.id);
+                  setShowRejectionModal(true);
+                }}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors"
+              >
+                Reject KYC
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-              {/* KYC Actions */}
-              {(selectedUser.kyc_status === "pending" ||
-                selectedUser.kyc_status === "under_review") && (
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">
-                    KYC Actions
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    {selectedUser.kyc_status === "pending" && (
-                      <button
-                        onClick={() => {
-                          handleUpdateKycStatus(
-                            selectedUser.id,
-                            "under_review"
-                          );
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        <EyeIcon />
-                        Mark Under Review
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        handleUpdateKycStatus(selectedUser.id, "approved");
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 cursor-pointer text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      <CheckIcon />
-                      Approve KYC
-                    </button>
-                    <button
-                      onClick={() => {
-                        setUserToReject(selectedUser.id);
-                        setShowRejectionModal(true);
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-600 cursor-pointer text-white rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      <XIcon />
-                      Reject KYC
-                    </button>
-                  </div>
-                </div>
-              )}
+      {/* Rejection Modal */}
+      {showRejectionModal && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-sm w-full shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <h3 className="text-sm font-semibold text-[#2B3674]">
+                Reject Application
+              </h3>
+            </div>
+            <div className="p-4">
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter reason for rejection..."
+                className="w-full h-24 p-2.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 resize-none"
+              />
+            </div>
+            <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowRejectionModal(false);
+                  setRejectionReason("");
+                }}
+                className="px-3 py-1.5 text-xs font-medium text-[#A3AED0] hover:text-[#2B3674] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRejectKyc}
+                disabled={!rejectionReason.trim()}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-md text-xs font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </div>
@@ -1355,64 +783,22 @@ const Users: NextPage = () => {
 
       {/* Image Modal */}
       {showImageModal && selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="relative max-w-4xl max-h-full">
-            <button
-              onClick={() => {
-                setShowImageModal(false);
-                setSelectedImage(null);
-              }}
-              className="absolute top-4 right-4 text-white cursor-pointer hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
-            >
-              <XIcon />
-            </button>
+        <div
+          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center">
             <img
               src={selectedImage}
-              alt="Document"
-              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              alt="Full size"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
             />
-          </div>
-        </div>
-      )}
-
-      {/* Rejection Modal */}
-      {showRejectionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-xl shadow-lg">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Reject KYC Application
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Please provide a reason for rejecting this KYC application:
-              </p>
-              <textarea
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                rows={4}
-                placeholder="Enter rejection reason..."
-              />
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowRejectionModal(false);
-                    setUserToReject(null);
-                    setRejectionReason("");
-                  }}
-                  className="px-4 py-2 text-gray-600 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleRejectKyc}
-                  disabled={!rejectionReason.trim()}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg cursor-pointer hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Reject KYC
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="absolute top-2 right-2 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
       )}

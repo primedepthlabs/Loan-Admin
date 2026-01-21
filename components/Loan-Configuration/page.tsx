@@ -12,7 +12,6 @@ import {
   Settings,
   Percent,
   Calendar,
-  DollarSign,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -41,7 +40,7 @@ const AdminLoanSettings: React.FC = () => {
   const [disbursementInterest, setDisbursementInterest] = useState<string>("");
   const [repaymentInterest, setRepaymentInterest] = useState<string>("");
   const [paymentType, setPaymentType] = useState<"weekly" | "monthly">(
-    "weekly"
+    "weekly",
   );
   const [tenureOptions, setTenureOptions] = useState<TenureOption[]>([
     { value: 1, label: "1 Week", unit: "week" },
@@ -108,12 +107,11 @@ const AdminLoanSettings: React.FC = () => {
   const handleUpdateTenure = (
     index: number,
     field: keyof TenureOption,
-    value: any
+    value: any,
   ) => {
     const newTenures = [...tenureOptions];
     newTenures[index] = { ...newTenures[index], [field]: value };
 
-    // Auto-update label when value or unit changes
     if (field === "value" || field === "unit") {
       const tenureValue = field === "value" ? value : newTenures[index].value;
       const tenureUnit = field === "unit" ? value : newTenures[index].unit;
@@ -187,7 +185,6 @@ const AdminLoanSettings: React.FC = () => {
       };
 
       if (currentSettings) {
-        // Update existing
         const { error: updateError } = await supabase
           .from("loan_configuration")
           .update(configData)
@@ -199,7 +196,6 @@ const AdminLoanSettings: React.FC = () => {
           return;
         }
       } else {
-        // Insert new
         const { error: insertError } = await supabase
           .from("loan_configuration")
           .insert([configData]);
@@ -235,26 +231,27 @@ const AdminLoanSettings: React.FC = () => {
     }, [onClose]);
 
     return (
-      <div className="fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-2 max-w-md animate-slide-in">
-        <CheckCircle className="w-5 h-5 flex-shrink-0" />
-        <span className="text-sm">{message}</span>
+      <div className="fixed top-4 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2 max-w-sm animate-in slide-in-from-top-2 duration-200">
+        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+        <span className="text-sm font-medium">{message}</span>
         <button
           onClick={onClose}
-          className="ml-2 text-white hover:text-gray-200"
+          className="ml-auto text-white/80 hover:text-white p-0.5 rounded hover:bg-white/10 transition-colors"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
     );
   };
 
-  // Calculate example values
   const calculateExample = () => {
     const loanAmount = 10000;
     const disbInterest = parseFloat(disbursementInterest) || 0;
     const repayInterest = parseFloat(repaymentInterest) || 0;
 
-    const disbursementDeduction = Math.round(loanAmount * (disbInterest / 100));
+    const disbursementDeduction = Math.round(
+      loanAmount * (disbInterest / 100),
+    );
     const amountReceived = loanAmount - disbursementDeduction;
 
     const repaymentAddition = Math.round(loanAmount * (repayInterest / 100));
@@ -273,8 +270,11 @@ const AdminLoanSettings: React.FC = () => {
 
   if (isFetching) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-yellow-600" />
+      <div className="flex items-center justify-center min-h-screen bg-[#F4F7FE]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[#A3AED0] text-sm font-medium">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -290,344 +290,322 @@ const AdminLoanSettings: React.FC = () => {
         />
       )}
 
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-[#F4F7FE] p-3 sm:p-4">
+        <div className="max-w-4xl mx-auto space-y-3">
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <Settings className="w-8 h-8 text-yellow-600" />
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Loan Configuration
-              </h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#03A9F4] to-[#0288D1] flex items-center justify-center shadow-sm">
+                <Settings className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-[#2B3674]">
+                  Loan Configuration
+                </h1>
+                <p className="text-xs text-[#A3AED0]">
+                  Interest rates, tenure & payment settings
+                </p>
+              </div>
             </div>
-            <p className="text-gray-600">
-              Configure disbursement interest %, repayment interest %, tenure
-              options, and payment types
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
-                <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-600">{error}</p>
+            {currentSettings && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600">
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium">Configured</span>
               </div>
             )}
+          </div>
 
-            {/* Disbursement Interest Section */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Percent className="inline w-4 h-4 mr-1" />
-                Disbursement Interest (%)
-              </label>
-              <input
-                type="number"
-                value={disbursementInterest}
-                onChange={(e) => setDisbursementInterest(e.target.value)}
-                min="0"
-                max="100"
-                step="0.01"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                placeholder="Enter disbursement interest % (e.g., 5.00)"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Interest deducted from loan amount (e.g., 5% means ₹500 deducted
-                from ₹10,000, user gets ₹9,500)
-              </p>
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <p className="text-xs text-red-600 font-medium">{error}</p>
+              <button
+                onClick={() => setError("")}
+                className="ml-auto text-red-400 hover:text-red-600 p-0.5"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
+          )}
 
-            {/* Repayment Interest Section */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Percent className="inline w-4 h-4 mr-1" />
-                Repayment Interest (%)
-              </label>
-              <input
-                type="number"
-                value={repaymentInterest}
-                onChange={(e) => setRepaymentInterest(e.target.value)}
-                min="0"
-                max="500"
-                step="0.01"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                placeholder="Enter repayment interest % (e.g., 10.00)"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Interest added to loan amount (e.g., 10% means ₹1,000 added to
-                ₹10,000, user pays ₹11,000)
-              </p>
+          {/* Main Form Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100/50 overflow-hidden">
+            {/* Interest Rates Section */}
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#F4F7FE] to-[#E3F2FD] flex items-center justify-center">
+                  <Percent className="w-3 h-3 text-[#03A9F4]" />
+                </div>
+                <p className="text-sm font-medium text-[#2B3674]">
+                  Interest Rates
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-medium text-[#A3AED0] uppercase tracking-wider mb-1">
+                    Disbursement Interest (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={disbursementInterest}
+                    onChange={(e) => setDisbursementInterest(e.target.value)}
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] font-medium text-[#2B3674] transition-all"
+                    placeholder="5.00"
+                  />
+                  <p className="text-[9px] text-[#A3AED0] mt-1">
+                    Deducted from loan amount
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-[#A3AED0] uppercase tracking-wider mb-1">
+                    Repayment Interest (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={repaymentInterest}
+                    onChange={(e) => setRepaymentInterest(e.target.value)}
+                    min="0"
+                    max="500"
+                    step="0.01"
+                    className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] font-medium text-[#2B3674] transition-all"
+                    placeholder="10.00"
+                  />
+                  <p className="text-[9px] text-[#A3AED0] mt-1">
+                    Added to repayment amount
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Example Calculation */}
             {disbursementInterest && repaymentInterest && (
-              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                  Example Calculation (₹10,000 loan):
-                </h3>
-                <div className="space-y-2 text-sm mb-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Loan Amount:</span>
-                    <span className="font-semibold">₹10,000</span>
-                  </div>
-                  <div className="flex justify-between text-red-600">
-                    <span>
-                      - Disbursement Interest ({disbursementInterest}%):
-                    </span>
-                    <span className="font-semibold">
-                      -₹{example.disbursementDeduction.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-gray-600 font-semibold">
-                      User Receives:
-                    </span>
-                    <span className="font-bold text-green-600 text-base">
+              <div className="px-4 py-3 bg-gradient-to-r from-[#F4F7FE] to-transparent border-b border-gray-100">
+                <p className="text-[10px] font-medium text-[#A3AED0] uppercase tracking-wider mb-2">
+                  Example: ₹10,000 Loan
+                </p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center p-2 bg-white rounded-md border border-gray-100">
+                    <p className="text-[9px] text-[#A3AED0] mb-0.5">
+                      User Receives
+                    </p>
+                    <p className="text-sm font-semibold text-emerald-600">
                       ₹{example.amountReceived.toLocaleString("en-IN")}
-                    </span>
+                    </p>
                   </div>
-                </div>
-                <div className="space-y-2 text-sm border-t pt-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Loan Amount:</span>
-                    <span className="font-semibold">₹10,000</span>
-                  </div>
-                  <div className="flex justify-between text-orange-600">
-                    <span>+ Repayment Interest ({repaymentInterest}%):</span>
-                    <span className="font-semibold">
-                      +₹{example.repaymentAddition.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-gray-600 font-semibold">
-                      User Repays:
-                    </span>
-                    <span className="font-bold text-gray-800 text-base">
+                  <div className="text-center p-2 bg-white rounded-md border border-gray-100">
+                    <p className="text-[9px] text-[#A3AED0] mb-0.5">
+                      User Repays
+                    </p>
+                    <p className="text-sm font-semibold text-[#2B3674]">
                       ₹{example.totalRepayable.toLocaleString("en-IN")}
-                    </span>
+                    </p>
                   </div>
-                </div>
-                <div className="mt-3 pt-3 border-t">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 font-semibold">
-                      Total Interest:
-                    </span>
-                    <span className="font-bold text-orange-600 text-base">
+                  <div className="text-center p-2 bg-white rounded-md border border-gray-100">
+                    <p className="text-[9px] text-[#A3AED0] mb-0.5">
+                      Total Interest
+                    </p>
+                    <p className="text-sm font-semibold text-orange-500">
                       ₹{example.totalInterest.toLocaleString("en-IN")}
-                    </span>
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Payment Type Section */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                <Calendar className="inline w-4 h-4 mr-1" />
-                Payment Type
-              </label>
-              <div className="flex gap-4">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="paymentType"
-                    value="weekly"
-                    checked={paymentType === "weekly"}
-                    onChange={(e) =>
-                      setPaymentType(e.target.value as "weekly" | "monthly")
-                    }
-                    className="w-4 h-4 text-yellow-600 focus:ring-yellow-500"
-                  />
-                  <span className="ml-2 text-gray-700">Weekly Payments</span>
-                </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="paymentType"
-                    value="monthly"
-                    checked={paymentType === "monthly"}
-                    onChange={(e) =>
-                      setPaymentType(e.target.value as "weekly" | "monthly")
-                    }
-                    className="w-4 h-4 text-yellow-600 focus:ring-yellow-500"
-                  />
-                  <span className="ml-2 text-gray-700">Monthly Payments</span>
-                </label>
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#F4F7FE] to-[#E3F2FD] flex items-center justify-center">
+                  <Calendar className="w-3 h-3 text-[#03A9F4]" />
+                </div>
+                <p className="text-sm font-medium text-[#2B3674]">
+                  Payment Type
+                </p>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Select how often users will make loan payments
-              </p>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentType("weekly")}
+                  className={`flex-1 py-2 px-3 rounded-md text-xs font-medium transition-all ${
+                    paymentType === "weekly"
+                      ? "bg-[#03A9F4] text-white shadow-sm"
+                      : "bg-gray-100 text-[#A3AED0] hover:bg-gray-200"
+                  }`}
+                >
+                  Weekly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentType("monthly")}
+                  className={`flex-1 py-2 px-3 rounded-md text-xs font-medium transition-all ${
+                    paymentType === "monthly"
+                      ? "bg-[#03A9F4] text-white shadow-sm"
+                      : "bg-gray-100 text-[#A3AED0] hover:bg-gray-200"
+                  }`}
+                >
+                  Monthly
+                </button>
+              </div>
             </div>
 
             {/* Tenure Options Section */}
-            <div className="mb-8">
+            <div className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <p className="text-sm font-medium text-[#2B3674]">
                   Tenure Options
-                </label>
+                </p>
                 <button
                   onClick={handleAddTenure}
-                  className="flex items-center gap-1 px-3 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-[#03A9F4] bg-[#F4F7FE] rounded-md hover:bg-[#E3F2FD] transition-colors"
                 >
-                  <Plus className="w-4 h-4" />
-                  Add Option
+                  <Plus className="w-3 h-3" />
+                  Add
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {tenureOptions.map((tenure, index) => (
                   <div
                     key={index}
-                    className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                    className="flex items-center gap-2 p-2 bg-gray-50 rounded-md border border-gray-100 hover:border-gray-200 transition-colors"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {/* Value */}
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Value
-                          </label>
-                          <input
-                            type="number"
-                            value={tenure.value}
-                            onChange={(e) =>
-                              handleUpdateTenure(
-                                index,
-                                "value",
-                                parseInt(e.target.value) || 0
-                              )
-                            }
-                            min="1"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                            placeholder="1"
-                          />
-                        </div>
-
-                        {/* Unit */}
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Unit
-                          </label>
-                          <select
-                            value={tenure.unit}
-                            onChange={(e) =>
-                              handleUpdateTenure(index, "unit", e.target.value)
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                          >
-                            <option value="week">Week(s)</option>
-                            <option value="month">Month(s)</option>
-                            <option value="year">Year(s)</option>
-                          </select>
-                        </div>
-
-                        {/* Label */}
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Label
-                          </label>
-                          <input
-                            type="text"
-                            value={tenure.label}
-                            onChange={(e) =>
-                              handleUpdateTenure(index, "label", e.target.value)
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                            placeholder="1 Week"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => handleRemoveTenure(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-5"
-                        title="Remove tenure option"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <input
+                      type="number"
+                      value={tenure.value}
+                      onChange={(e) =>
+                        handleUpdateTenure(
+                          index,
+                          "value",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
+                      min="1"
+                      className="w-16 px-2 py-1 border border-gray-200 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] text-[#2B3674]"
+                      placeholder="1"
+                    />
+                    <select
+                      value={tenure.unit}
+                      onChange={(e) =>
+                        handleUpdateTenure(index, "unit", e.target.value)
+                      }
+                      className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] text-[#2B3674] bg-white"
+                    >
+                      <option value="week">Week(s)</option>
+                      <option value="month">Month(s)</option>
+                      <option value="year">Year(s)</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={tenure.label}
+                      onChange={(e) =>
+                        handleUpdateTenure(index, "label", e.target.value)
+                      }
+                      className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] text-[#2B3674]"
+                      placeholder="Label"
+                    />
+                    <button
+                      onClick={() => handleRemoveTenure(index)}
+                      className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Remove"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ))}
               </div>
-
-              <p className="text-xs text-gray-500 mt-3">
-                Add multiple tenure options for users to choose from (e.g., 1
-                Week, 2 Weeks, 1 Month)
-              </p>
             </div>
 
             {/* Save Button */}
-            <div className="flex justify-end">
+            <div className="px-4 py-3 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+              <p className="text-[10px] text-[#A3AED0]">
+                {currentSettings
+                  ? "Configuration saved"
+                  : "No configuration saved yet"}
+              </p>
               <button
                 onClick={handleSave}
                 disabled={
                   isLoading || !disbursementInterest || !repaymentInterest
                 }
-                className={`px-6 py-3 rounded-lg font-semibold text-white transition-all duration-200 flex items-center ${
+                className={`px-4 py-1.5 rounded-md text-xs font-medium text-white transition-all duration-200 flex items-center gap-1.5 shadow-sm ${
                   isLoading || !disbursementInterest || !repaymentInterest
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-yellow-500 hover:bg-yellow-600 shadow-md hover:shadow-lg"
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-[#03A9F4] hover:bg-[#0288D1] hover:shadow-md"
                 }`}
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="w-5 h-5 mr-2" />
+                    <Save className="w-3.5 h-3.5" />
                     Save Configuration
                   </>
                 )}
               </button>
             </div>
+          </div>
 
-            {/* Preview Section */}
-            {currentSettings && (
-              <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                  Current Configuration Preview
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">
-                      Disbursement Interest:
-                    </span>
-                    <span className="ml-2 font-semibold text-gray-800">
-                      {currentSettings.disbursement_interest}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Repayment Interest:</span>
-                    <span className="ml-2 font-semibold text-gray-800">
-                      {currentSettings.repayment_interest}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Payment Type:</span>
-                    <span className="ml-2 font-semibold text-gray-800 capitalize">
-                      {currentSettings.payment_type}
-                    </span>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <span className="text-gray-600">Tenure Options:</span>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {currentSettings.tenure_options.map((option, index) => (
-                        <span
-                          key={index}
-                          className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium"
-                        >
-                          {option.label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+          {/* Current Config Preview */}
+          {currentSettings && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100/50 p-4">
+              <p className="text-xs font-medium text-[#2B3674] mb-3">
+                Current Configuration
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="text-center p-2 bg-gray-50 rounded-md">
+                  <p className="text-[9px] text-[#A3AED0] uppercase mb-0.5">
+                    Disbursement
+                  </p>
+                  <p className="text-sm font-semibold text-[#2B3674]">
+                    {currentSettings.disbursement_interest}%
+                  </p>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded-md">
+                  <p className="text-[9px] text-[#A3AED0] uppercase mb-0.5">
+                    Repayment
+                  </p>
+                  <p className="text-sm font-semibold text-[#2B3674]">
+                    {currentSettings.repayment_interest}%
+                  </p>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded-md">
+                  <p className="text-[9px] text-[#A3AED0] uppercase mb-0.5">
+                    Payment
+                  </p>
+                  <p className="text-sm font-semibold text-[#2B3674] capitalize">
+                    {currentSettings.payment_type}
+                  </p>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded-md">
+                  <p className="text-[9px] text-[#A3AED0] uppercase mb-0.5">
+                    Tenures
+                  </p>
+                  <p className="text-sm font-semibold text-[#2B3674]">
+                    {currentSettings.tenure_options.length}
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {currentSettings.tenure_options.map((option, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-0.5 bg-[#03A9F4]/10 text-[#03A9F4] text-[10px] font-medium rounded"
+                  >
+                    {option.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

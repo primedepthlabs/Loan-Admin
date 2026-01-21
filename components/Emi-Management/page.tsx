@@ -1,65 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
 import { NextPage } from "next";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import {
-  ArrowLeft,
   Calendar,
-  DollarSign,
   CheckCircle,
   XCircle,
   Clock,
+  RefreshCw,
+  Search,
+  Edit3,
+  DollarSign,
+  AlertCircle,
+  X,
+  Loader2,
+  CreditCard,
+  Check,
+  Image,
 } from "lucide-react";
-
-// Icons
-const RefreshIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-    />
-  </svg>
-);
-
-const SearchIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-    />
-  </svg>
-);
-
-const EditIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-    />
-  </svg>
-);
 
 // Interfaces
 interface User {
@@ -151,7 +109,6 @@ const emiService = {
         .in("auth_user_id", userIds);
 
       if (userError) {
-        console.error("Error fetching users:", userError);
         return {
           success: true,
           loans: applications.map((app) => ({ ...app, users: null })),
@@ -167,7 +124,6 @@ const emiService = {
 
       return { success: true, loans: result };
     } catch (error) {
-      console.error("Get disbursed loans error:", error);
       return {
         success: false,
         error: (error as Error).message,
@@ -193,7 +149,6 @@ const emiService = {
         data?.map((emi) => {
           const dueDate = new Date(emi.due_date);
           dueDate.setHours(0, 0, 0, 0);
-
           if (emi.status === "pending" && dueDate < today) {
             return { ...emi, status: "overdue" as const };
           }
@@ -202,7 +157,6 @@ const emiService = {
 
       return { success: true, emis: updatedEmis };
     } catch (error) {
-      console.error("Get EMIs error:", error);
       return { success: false, error: (error as Error).message, emis: [] };
     }
   },
@@ -211,7 +165,7 @@ const emiService = {
     emiId: string,
     paidAmount: number,
     paymentNotes: string,
-    emiAmount: number
+    emiAmount: number,
   ) => {
     try {
       const status = paidAmount >= emiAmount ? "paid" : "partial";
@@ -230,20 +184,14 @@ const emiService = {
         .single();
 
       if (error) throw error;
-
       return { success: true, emi: data };
     } catch (error) {
-      console.error("Update EMI error:", error);
       return { success: false, error: (error as Error).message };
     }
   },
 
-  // FIXED getPendingPaymentVerifications FUNCTION
-  // Replace your current function (around line 250-270) with this:
-
   getPendingPaymentVerifications: async () => {
     try {
-      // First, get pending EMIs with screenshots
       const { data: emis, error: emiError } = await supabase
         .from("loan_emis")
         .select("*")
@@ -257,10 +205,8 @@ const emiService = {
         return { success: true, payments: [] };
       }
 
-      // Get loan application IDs
       const loanAppIds = [...new Set(emis.map((e) => e.loan_application_id))];
 
-      // Get loan applications
       const { data: loanApps, error: loanError } = await supabase
         .from("loan_applications")
         .select("id, loan_type, user_id")
@@ -268,12 +214,10 @@ const emiService = {
 
       if (loanError) throw loanError;
 
-      // Get user IDs
       const userIds = [
         ...new Set(loanApps?.map((l) => l.user_id).filter(Boolean) || []),
       ];
 
-      // Get users
       const { data: users, error: userError } = await supabase
         .from("users")
         .select("auth_user_id, name")
@@ -281,7 +225,6 @@ const emiService = {
 
       if (userError) throw userError;
 
-      // Map everything together
       const loanMap = new Map(loanApps?.map((l) => [l.id, l]));
       const userMap = new Map(users?.map((u) => [u.auth_user_id, u]));
 
@@ -304,22 +247,14 @@ const emiService = {
 
       return { success: true, payments: formatted };
     } catch (error) {
-      console.error("Get pending payments error:", error);
       return { success: false, error: (error as Error).message, payments: [] };
     }
   },
 
-  // CHANGES MADE:
-  // 1. Changed from nested select to separate queries
-  // 2. Added check for null payment_screenshot_url
-  // 3. Proper error handling at each step
-  // 4. Uses Maps for efficient data joining
-  // 5. Filters out null user_ids before querying users table
-
   verifyPayment: async (
     emiId: string,
     verified: boolean,
-    paymentNotes: string
+    paymentNotes: string,
   ) => {
     try {
       const { error } = await supabase
@@ -345,7 +280,6 @@ const emiService = {
       if (error) throw error;
       return { success: true };
     } catch (error) {
-      console.error("Verify payment error:", error);
       return { success: false, error: (error as Error).message };
     }
   },
@@ -377,7 +311,6 @@ const emiService = {
 
       return { success: true, completed: false };
     } catch (error) {
-      console.error("Check loan completion error:", error);
       return {
         success: false,
         error: (error as Error).message,
@@ -388,10 +321,9 @@ const emiService = {
 };
 
 const EMIManagement: NextPage = () => {
-  const router = useRouter();
   const [loans, setLoans] = useState<LoanApplication[]>([]);
   const [selectedLoan, setSelectedLoan] = useState<LoanApplication | null>(
-    null
+    null,
   );
   const [emis, setEmis] = useState<LoanEMI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -399,8 +331,6 @@ const EMIManagement: NextPage = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
-
-  // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedEMI, setSelectedEMI] = useState<LoanEMI | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -414,53 +344,32 @@ const EMIManagement: NextPage = () => {
     loadLoans();
     loadPendingPayments();
   }, []);
-  //
+
   useEffect(() => {
     const channel = supabase
       .channel("admin-loan-emis-all")
       .on(
         "postgres_changes",
-        {
-          event: "*", // INSERT, UPDATE, DELETE
-          schema: "public",
-          table: "loan_emis",
-        },
-        (payload) => {
-          console.log("EMI changed:", payload);
-
-          // Reload pending payments (in case new payment submitted)
+        { event: "*", schema: "public", table: "loan_emis" },
+        () => {
           loadPendingPayments();
-
-          // If a loan is selected, reload its EMIs
-          if (selectedLoan) {
-            loadEMIs(selectedLoan.id);
-          }
-        }
+          if (selectedLoan) loadEMIs(selectedLoan.id);
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedLoan]); // Re-subscribe when selected loan changes
+  }, [selectedLoan]);
 
-  // 2. Listen to loan_applications changes (for loan status updates)
   useEffect(() => {
     const channel = supabase
       .channel("admin-loan-applications")
       .on(
         "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "loan_applications",
-        },
-        (payload) => {
-          console.log("Loan application updated:", payload);
-
-          // Reload loans list
-          loadLoans();
-        }
+        { event: "UPDATE", schema: "public", table: "loan_applications" },
+        () => loadLoans(),
       )
       .subscribe();
 
@@ -469,7 +378,6 @@ const EMIManagement: NextPage = () => {
     };
   }, []);
 
-  // 3. Listen to specific loan's EMIs when a loan is selected
   useEffect(() => {
     if (!selectedLoan) return;
 
@@ -483,12 +391,7 @@ const EMIManagement: NextPage = () => {
           table: "loan_emis",
           filter: `loan_application_id=eq.${selectedLoan.id}`,
         },
-        (payload) => {
-          console.log("Selected loan EMI updated:", payload);
-
-          // Reload EMIs for selected loan
-          loadEMIs(selectedLoan.id);
-        }
+        () => loadEMIs(selectedLoan.id),
       )
       .subscribe();
 
@@ -497,21 +400,14 @@ const EMIManagement: NextPage = () => {
     };
   }, [selectedLoan]);
 
-  //
   const loadLoans = async () => {
     setIsLoading(true);
     setError("");
-
     try {
       const result = await emiService.getDisbursedLoans();
-
-      if (result.success) {
-        setLoans(result.loans);
-      } else {
-        setError(result.error || "Failed to load loans");
-      }
+      if (result.success) setLoans(result.loans);
+      else setError(result.error || "Failed to load loans");
     } catch (err) {
-      console.error("Load loans error:", err);
       setError("Something went wrong");
     } finally {
       setIsLoading(false);
@@ -522,14 +418,9 @@ const EMIManagement: NextPage = () => {
     setIsLoadingEMIs(true);
     try {
       const result = await emiService.getEMIsForLoan(loanId);
-
-      if (result.success) {
-        setEmis(result.emis);
-      } else {
-        setError(result.error || "Failed to load EMIs");
-      }
+      if (result.success) setEmis(result.emis);
+      else setError(result.error || "Failed to load EMIs");
     } catch (err) {
-      console.error("Load EMIs error:", err);
       setError("Something went wrong");
     } finally {
       setIsLoadingEMIs(false);
@@ -553,9 +444,7 @@ const EMIManagement: NextPage = () => {
   const loadPendingPayments = async () => {
     try {
       const result = await emiService.getPendingPaymentVerifications();
-      if (result.success) {
-        setPendingPayments(result.payments);
-      }
+      if (result.success) setPendingPayments(result.payments);
     } catch (err) {
       console.error("Load pending payments error:", err);
     }
@@ -573,23 +462,20 @@ const EMIManagement: NextPage = () => {
         selectedEMI.id,
         totalPaid,
         paymentNotes,
-        selectedEMI.emi_amount
+        selectedEMI.emi_amount,
       );
 
       if (result.success) {
         await loadEMIs(selectedLoan!.id);
-
         const completionResult = await emiService.checkAndCompleteLoan(
-          selectedLoan!.id
+          selectedLoan!.id,
         );
-
         if (completionResult.completed) {
           alert("🎉 All EMIs paid! Loan marked as completed.");
           await loadLoans();
           setSelectedLoan(null);
           setEmis([]);
         }
-
         setShowPaymentModal(false);
         setSelectedEMI(null);
         setPaymentAmount("");
@@ -598,7 +484,6 @@ const EMIManagement: NextPage = () => {
         setError(result.error || "Failed to update payment");
       }
     } catch (err) {
-      console.error("Submit payment error:", err);
       setError("Something went wrong");
     }
   };
@@ -609,23 +494,22 @@ const EMIManagement: NextPage = () => {
   };
 
   const handleVerifyPayment = async (verified: boolean) => {
-    if (!selectedPaymentReview) return;
+    if (!selectedPaymentReview || !selectedLoan) return;
 
     try {
       const result = await emiService.verifyPayment(
         selectedPaymentReview.emi_id,
         verified,
-        verified ? "Payment verified by admin" : "Payment rejected by admin"
+        verified ? "Payment verified by admin" : "Payment rejected by admin",
       );
 
       if (result.success) {
-        alert(verified ? "✅ Payment Approved!" : "❌ Payment Rejected");
+        await emiService.checkAndCompleteLoan(selectedLoan.id);
+        await loadLoans();
+        await loadPendingPayments();
+        await loadEMIs(selectedLoan.id);
         setShowPaymentReviewModal(false);
         setSelectedPaymentReview(null);
-        await loadPendingPayments();
-        if (selectedLoan) {
-          await loadEMIs(selectedLoan.id);
-        }
       }
     } catch (err) {
       console.error("Verify payment error:", err);
@@ -636,9 +520,7 @@ const EMIManagement: NextPage = () => {
     setRefreshing(true);
     await loadLoans();
     await loadPendingPayments();
-    if (selectedLoan) {
-      await loadEMIs(selectedLoan.id);
-    }
+    if (selectedLoan) await loadEMIs(selectedLoan.id);
     setRefreshing(false);
   };
 
@@ -652,31 +534,31 @@ const EMIManagement: NextPage = () => {
     );
   });
 
-  const getStatusColor = (status: string): string => {
+  const getStatusStyle = (status: string) => {
     switch (status) {
       case "paid":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-emerald-50 text-emerald-600 border-emerald-100";
       case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-amber-50 text-amber-600 border-amber-100";
       case "overdue":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-50 text-red-600 border-red-100";
       case "partial":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-50 text-blue-600 border-blue-100";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-50 text-gray-600 border-gray-100";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "paid":
-        return <CheckCircle className="w-4 h-4" />;
+        return <CheckCircle className="w-3 h-3" />;
       case "pending":
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="w-3 h-3" />;
       case "overdue":
-        return <XCircle className="w-4 h-4" />;
+        return <XCircle className="w-3 h-3" />;
       case "partial":
-        return <DollarSign className="w-4 h-4" />;
+        return <DollarSign className="w-3 h-3" />;
       default:
         return null;
     }
@@ -706,123 +588,102 @@ const EMIManagement: NextPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header - Minimal with matching theme */}
-      <header className="bg-white shadow-sm">
-        <div className="relative">
-          <div className="absolute inset-0 opacity-10">
-            <div
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 20% 50%, white 1px, transparent 1px)",
-                backgroundSize: "20px 20px",
-              }}
-              className="w-full h-full"
-            />
-          </div>
-          <div className="relative max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div>
-                  <h1 className="text-base font-bold text-black">
-                    EMI Management
-                  </h1>
-                  <p className="text-xs text-gray-700">
-                    Track and manage loan payments
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={refreshData}
-                disabled={refreshing}
-                className="flex items-center gap-2 px-3 py-2 text-black hover:bg-black/10 rounded-lg transition-colors disabled:opacity-50 text-sm"
-              >
-                <div className={refreshing ? "animate-spin" : ""}>
-                  <RefreshIcon />
-                </div>
-                <span className="hidden sm:inline">
-                  {refreshing ? "..." : "Refresh"}
-                </span>
-              </button>
+    <div className="min-h-screen bg-[#F4F7FE] p-3 sm:p-4">
+      <div className="max-w-6xl mx-auto space-y-3">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#03A9F4] to-[#0288D1] flex items-center justify-center shadow-sm">
+              <CreditCard className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold text-[#2B3674]">
+                EMI Management
+              </h1>
+              <p className="text-xs text-[#A3AED0]">
+                {loans.length} active loans
+              </p>
             </div>
           </div>
+          <button
+            onClick={refreshData}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#03A9F4] bg-white rounded-md hover:bg-[#E3F2FD] transition-colors disabled:opacity-50 shadow-sm"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`}
+            />
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        {/* Error Message */}
+        {/* Error */}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
+            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-xs text-red-600 font-medium">{error}</p>
             <button
               onClick={() => setError("")}
-              className="text-red-500 hover:text-red-700 text-xs mt-2 underline"
+              className="ml-auto text-red-400 hover:text-red-600 p-0.5"
             >
-              Dismiss
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           {/* Left: Loans List */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-3 border-b">
-                <h2 className="font-semibold text-gray-900 mb-2 text-sm">
-                  Loan Records
-                </h2>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100/50">
+              <div className="p-3 border-b border-gray-100">
                 <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A3AED0]" />
                   <input
                     type="text"
                     placeholder="Search loans..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+                    className="w-full pl-8 pr-3 py-1.5 border border-gray-200 rounded-md text-xs text-[#2B3674] focus:outline-none focus:ring-1 focus:ring-[#03A9F4] focus:border-[#03A9F4] transition-all"
                   />
-                  <div className="absolute left-3 top-2.5 text-gray-400">
-                    <SearchIcon />
-                  </div>
                 </div>
               </div>
 
-              <div className="divide-y max-h-[600px] overflow-y-auto">
+              <div className="divide-y divide-gray-50 max-h-[500px] overflow-y-auto">
                 {isLoading ? (
                   <div className="p-8 text-center">
-                    <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-500">Loading...</p>
+                    <Loader2 className="w-6 h-6 text-[#03A9F4] animate-spin mx-auto mb-2" />
+                    <p className="text-xs text-[#A3AED0]">Loading...</p>
                   </div>
                 ) : filteredLoans.length === 0 ? (
                   <div className="p-8 text-center">
-                    <p className="text-gray-500 text-sm">
-                      No active loans found
-                    </p>
+                    <p className="text-xs text-[#A3AED0]">No loans found</p>
                   </div>
                 ) : (
                   filteredLoans.map((loan) => (
                     <button
                       key={loan.id}
                       onClick={() => handleSelectLoan(loan)}
-                      className={`w-full text-left p-3 hover:bg-gray-50 transition-colors ${
+                      className={`w-full text-left p-3 hover:bg-gray-50/50 transition-colors ${
                         selectedLoan?.id === loan.id
-                          ? "bg-yellow-50 border-l-4 border-yellow-400"
+                          ? "bg-[#03A9F4]/5 border-l-2 border-[#03A9F4]"
                           : ""
                       }`}
                     >
-                      <p className="font-medium text-gray-900 text-sm">
+                      <p className="text-sm font-medium text-[#2B3674]">
                         {loan.users?.name || "Unknown"}
                       </p>
-                      <p className="text-xs text-gray-600">{loan.loan_type}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-[10px] text-[#A3AED0]">
+                        {loan.loan_type}
+                      </p>
+                      <p className="text-[10px] text-[#A3AED0] mt-0.5">
                         ₹{loan.loan_amount.toLocaleString("en-IN")} •{" "}
                         {loan.tenure}{" "}
-                        {loan.payment_type === "weekly" ? "weeks" : "months"}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Disbursed: {formatDate(loan.disbursed_at)}
+                        {loan.payment_type === "weekly" ? "wk" : "mo"}
                       </p>
                       {loan.status === "completed" && (
-                        <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full border border-gray-300">
-                          ✓ Completed
+                        <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-[9px] rounded font-medium">
+                          <Check className="w-2.5 h-2.5" />
+                          Completed
                         </span>
                       )}
                     </button>
@@ -835,72 +696,69 @@ const EMIManagement: NextPage = () => {
           {/* Right: EMI Details */}
           <div className="lg:col-span-2">
             {!selectedLoan ? (
-              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100/50 p-12 text-center">
+                <Calendar className="w-10 h-10 text-[#A3AED0] mx-auto mb-3" />
+                <p className="text-sm text-[#A3AED0]">
                   Select a loan to view EMI schedule
                 </p>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100/50 overflow-hidden">
                 {/* Loan Header */}
-                <div className="p-4 border-b bg-gradient-to-br from-yellow-50 to-yellow-100">
+                <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-[#03A9F4]/5 to-transparent">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <h2 className="text-lg font-bold text-gray-900">
+                      <h2 className="text-sm font-semibold text-[#2B3674]">
                         {selectedLoan.users?.name}
                       </h2>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-[10px] text-[#A3AED0]">
                         {selectedLoan.loan_type}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-600">Total Repay</p>
-                      <p className="text-xl font-bold text-gray-900">
+                      <p className="text-[10px] text-[#A3AED0] uppercase">
+                        Total
+                      </p>
+                      <p className="text-lg font-bold text-[#2B3674]">
                         ₹{selectedLoan.total_payable.toLocaleString("en-IN")}
                       </p>
                     </div>
                   </div>
 
-                  {/* Interest Info */}
+                  {/* Stats */}
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="bg-white rounded p-2">
-                      <p className="text-xs text-gray-500">Loan Amount</p>
-                      <p className="text-sm font-semibold text-gray-900">
+                    <div className="bg-white/50 rounded p-2 text-center">
+                      <p className="text-[9px] text-[#A3AED0] uppercase">
+                        Principal
+                      </p>
+                      <p className="text-xs font-semibold text-[#2B3674]">
                         ₹{selectedLoan.loan_amount.toLocaleString("en-IN")}
                       </p>
                     </div>
-                    <div className="bg-white rounded p-2">
-                      <p className="text-xs text-red-600">Disbursement</p>
-                      <p className="text-sm font-semibold text-red-600">
+                    <div className="bg-white/50 rounded p-2 text-center">
+                      <p className="text-[9px] text-red-500 uppercase">
+                        Disbursement
+                      </p>
+                      <p className="text-xs font-semibold text-red-500">
                         -{selectedLoan.disbursement_interest}%
                       </p>
                     </div>
-                    <div className="bg-white rounded p-2">
-                      <p className="text-xs text-orange-600">Repayment</p>
-                      <p className="text-sm font-semibold text-orange-600">
+                    <div className="bg-white/50 rounded p-2 text-center">
+                      <p className="text-[9px] text-amber-600 uppercase">
+                        Repayment
+                      </p>
+                      <p className="text-xs font-semibold text-amber-600">
                         +{selectedLoan.repayment_interest}%
                       </p>
                     </div>
                   </div>
 
-                  {selectedLoan.amount_received && (
-                    <div className="bg-white rounded p-2 mb-3">
-                      <p className="text-xs text-gray-500">
-                        Amount Received by User
-                      </p>
-                      <p className="text-base font-bold text-green-600">
-                        ₹{selectedLoan.amount_received.toLocaleString("en-IN")}
-                      </p>
-                    </div>
-                  )}
-
                   {/* Progress */}
                   {emis.length > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="text-gray-600">Payment Progress</span>
-                        <span className="font-semibold text-gray-900">
+                    <div className="bg-white/50 rounded p-2">
+                      <div className="flex items-center justify-between text-[10px] mb-1">
+                        <span className="text-[#A3AED0]">Progress</span>
+                        <span className="font-medium text-[#2B3674]">
                           {
                             calculateProgress(emis, selectedLoan.total_payable)
                               .paidEMIs
@@ -913,29 +771,24 @@ const EMIManagement: NextPage = () => {
                           EMIs
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
                         <div
-                          className="bg-green-500 h-2 rounded-full transition-all"
+                          className="bg-emerald-500 h-1.5 rounded-full transition-all"
                           style={{
-                            width: `${
-                              calculateProgress(
-                                emis,
-                                selectedLoan.total_payable
-                              ).percentage
-                            }%`,
+                            width: `${calculateProgress(emis, selectedLoan.total_payable).percentage}%`,
                           }}
-                        ></div>
+                        />
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-green-600 font-semibold">
+                      <div className="flex items-center justify-between text-[9px] mt-1">
+                        <span className="text-emerald-600 font-medium">
                           ₹
                           {calculateProgress(
                             emis,
-                            selectedLoan.total_payable
+                            selectedLoan.total_payable,
                           ).paidAmount.toLocaleString("en-IN")}{" "}
                           paid
                         </span>
-                        <span className="text-gray-600">
+                        <span className="text-[#A3AED0]">
                           ₹
                           {(
                             calculateProgress(emis, selectedLoan.total_payable)
@@ -943,30 +796,57 @@ const EMIManagement: NextPage = () => {
                             calculateProgress(emis, selectedLoan.total_payable)
                               .paidAmount
                           ).toLocaleString("en-IN")}{" "}
-                          remaining
+                          left
                         </span>
                       </div>
                     </div>
                   )}
+
+                  {emis.length > 0 &&
+                    emis.every((emi) => emi.status === "paid") &&
+                    selectedLoan.status !== "completed" && (
+                      <button
+                        onClick={async () => {
+                          const { error } = await supabase
+                            .from("loan_applications")
+                            .update({
+                              status: "completed",
+                              completed_at: new Date().toISOString(),
+                              updated_at: new Date().toISOString(),
+                            })
+                            .eq("id", selectedLoan.id);
+
+                          if (!error) {
+                            alert("Loan marked as completed");
+                            await loadLoans();
+                            setSelectedLoan(null);
+                            setEmis([]);
+                          }
+                        }}
+                        className="mt-3 w-full bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors"
+                      >
+                        Mark as Completed
+                      </button>
+                    )}
                 </div>
 
                 {/* EMI List */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3 text-sm">
+                <div className="p-3">
+                  <p className="text-[10px] font-medium text-[#A3AED0] uppercase mb-2">
                     EMI Schedule
-                  </h3>
+                  </p>
 
                   {isLoadingEMIs ? (
-                    <div className="py-12 text-center">
-                      <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-500">Loading EMIs...</p>
+                    <div className="py-8 text-center">
+                      <Loader2 className="w-6 h-6 text-[#03A9F4] animate-spin mx-auto mb-2" />
+                      <p className="text-xs text-[#A3AED0]">Loading...</p>
                     </div>
                   ) : emis.length === 0 ? (
-                    <div className="py-12 text-center">
-                      <p className="text-gray-500 text-sm">No EMIs found</p>
+                    <div className="py-8 text-center">
+                      <p className="text-xs text-[#A3AED0]">No EMIs found</p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {emis.map((emi, index) => {
                         const isLastEMI = index === emis.length - 1;
                         const lastEMIAmount =
@@ -976,94 +856,73 @@ const EMIManagement: NextPage = () => {
                           lastEMIAmount &&
                           lastEMIAmount !== selectedLoan.installment_amount;
 
+                        const pendingPayment = pendingPayments.find(
+                          (p) => p.emi_id === emi.id,
+                        );
+
                         return (
                           <div
                             key={emi.id}
-                            className="border rounded-lg p-3 hover:shadow-md transition-shadow"
+                            className="flex items-center justify-between p-2.5 bg-gray-50/50 rounded-lg hover:bg-gray-50 transition-colors"
                           >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="text-center">
-                                  <p className="text-xs text-gray-500">EMI</p>
-                                  <p className="text-base font-bold text-gray-900">
-                                    {emi.emi_number}
-                                  </p>
-                                  {showLastEMINote && (
-                                    <p className="text-xs text-yellow-600 mt-0.5">
-                                      Last
-                                    </p>
-                                  )}
-                                </div>
-
-                                <div>
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Calendar className="w-3 h-3 text-gray-400" />
-                                    <p className="text-xs font-medium text-gray-900">
-                                      Due: {formatDate(emi.due_date)}
-                                    </p>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-xs text-gray-600">
-                                      ₹{emi.emi_amount.toLocaleString("en-IN")}
-                                    </p>
-                                  </div>
-                                  {(emi.paid_amount || 0) > 0 && (
-                                    <p className="text-xs text-green-600 mt-1">
-                                      Paid: ₹
-                                      {(emi.paid_amount || 0).toLocaleString(
-                                        "en-IN"
-                                      )}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                                    emi.status
-                                  )}`}
-                                >
-                                  {getStatusIcon(emi.status)}
-                                  {emi.status.charAt(0).toUpperCase() +
-                                    emi.status.slice(1)}
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center">
+                                <span className="text-xs font-bold text-[#2B3674]">
+                                  {emi.emi_number}
                                 </span>
-
-                                {/* ADD THIS: Check if this EMI has pending payment verification */}
-                                {(() => {
-                                  const pendingPayment = pendingPayments.find(
-                                    (p) => p.emi_id === emi.id
-                                  );
-
-                                  if (pendingPayment) {
-                                    return (
-                                      <button
-                                        onClick={() =>
-                                          handleReviewPayment(pendingPayment)
-                                        }
-                                        className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg font-medium"
-                                      >
-                                        📸 Review
-                                      </button>
-                                    );
-                                  }
-
-                                  return null;
-                                })()}
-
-                                {emi.status !== "paid" &&
-                                  !pendingPayments.find(
-                                    (p) => p.emi_id === emi.id
-                                  ) && (
-                                    <button
-                                      onClick={() => handleMarkPayment(emi)}
-                                      className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
-                                      title="Mark Payment"
-                                    >
-                                      <EditIcon />
-                                    </button>
-                                  )}
                               </div>
+                              <div>
+                                <p className="text-xs font-medium text-[#2B3674]">
+                                  ₹{emi.emi_amount.toLocaleString("en-IN")}
+                                  {showLastEMINote && (
+                                    <span className="ml-1 text-[9px] text-amber-600">
+                                      (Last)
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="text-[10px] text-[#A3AED0]">
+                                  Due: {formatDate(emi.due_date)}
+                                  {(emi.paid_amount || 0) > 0 && (
+                                    <span className="ml-1 text-emerald-600">
+                                      • Paid: ₹
+                                      {(emi.paid_amount || 0).toLocaleString(
+                                        "en-IN",
+                                      )}
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded border ${getStatusStyle(emi.status)}`}
+                              >
+                                {getStatusIcon(emi.status)}
+                                {emi.status}
+                              </span>
+
+                              {pendingPayment && (
+                                <button
+                                  onClick={() =>
+                                    handleReviewPayment(pendingPayment)
+                                  }
+                                  className="flex items-center gap-1 px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-[10px] rounded font-medium transition-colors"
+                                >
+                                  <Image className="w-3 h-3" />
+                                  Review
+                                </button>
+                              )}
+
+                              {emi.status !== "paid" && !pendingPayment && (
+                                <button
+                                  onClick={() => handleMarkPayment(emi)}
+                                  className="p-1.5 text-[#03A9F4] hover:bg-[#F4F7FE] rounded transition-colors"
+                                  title="Mark Payment"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         );
@@ -1079,78 +938,68 @@ const EMIManagement: NextPage = () => {
 
       {/* Payment Modal */}
       {showPaymentModal && selectedEMI && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-xl p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Record Payment
-            </h3>
-
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">
-                  EMI #{selectedEMI.emi_number}
-                </span>
-                <span className="text-sm font-semibold text-gray-900">
-                  Due: {formatDate(selectedEMI.due_date)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">EMI Amount</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  ₹{selectedEMI.emi_amount.toLocaleString("en-IN")}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Already Paid</span>
-                <span className="text-sm font-semibold text-green-600">
-                  ₹{(selectedEMI.paid_amount || 0).toLocaleString("en-IN")}
-                </span>
-              </div>
-              <div className="mt-2 pt-2 border-t flex items-center justify-between">
-                <span className="text-sm font-semibold text-gray-900">
-                  Remaining
-                </span>
-                <span className="text-lg font-bold text-red-600">
-                  ₹
-                  {Math.max(
-                    0,
-                    selectedEMI.emi_amount - (selectedEMI.paid_amount || 0)
-                  ).toLocaleString("en-IN")}
-                </span>
-              </div>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-sm w-full shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <h3 className="text-sm font-semibold text-[#2B3674]">
+                Record Payment - EMI #{selectedEMI.emi_number}
+              </h3>
             </div>
 
-            <div className="space-y-4">
+            <div className="p-4 space-y-3">
+              <div className="bg-gray-50 rounded-lg p-3 space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#A3AED0]">EMI Amount</span>
+                  <span className="font-medium text-[#2B3674]">
+                    ₹{selectedEMI.emi_amount.toLocaleString("en-IN")}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#A3AED0]">Already Paid</span>
+                  <span className="font-medium text-emerald-600">
+                    ₹{(selectedEMI.paid_amount || 0).toLocaleString("en-IN")}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs pt-1.5 border-t border-gray-200">
+                  <span className="font-medium text-[#2B3674]">Remaining</span>
+                  <span className="font-bold text-red-600">
+                    ₹
+                    {Math.max(
+                      0,
+                      selectedEMI.emi_amount - (selectedEMI.paid_amount || 0),
+                    ).toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Payment Amount *
+                <label className="block text-[10px] font-medium text-[#A3AED0] uppercase mb-1">
+                  Amount
                 </label>
                 <input
                   type="number"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-yellow-400"
-                  placeholder="Enter amount"
+                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
                   step="0.01"
-                  max={selectedEMI.emi_amount - (selectedEMI.paid_amount || 0)}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Payment Notes
+                <label className="block text-[10px] font-medium text-[#A3AED0] uppercase mb-1">
+                  Notes
                 </label>
                 <textarea
                   value={paymentNotes}
                   onChange={(e) => setPaymentNotes(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-yellow-400"
-                  rows={3}
-                  placeholder="Cash, bank transfer, reference number, etc."
+                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+                  rows={2}
+                  placeholder="Reference, mode..."
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
               <button
                 onClick={() => {
                   setShowPaymentModal(false);
@@ -1158,16 +1007,16 @@ const EMIManagement: NextPage = () => {
                   setPaymentAmount("");
                   setPaymentNotes("");
                 }}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                className="px-3 py-1.5 text-xs font-medium text-[#A3AED0] hover:text-[#2B3674] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitPayment}
                 disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1.5 rounded-md text-xs font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Record Payment
+                Record
               </button>
             </div>
           </div>
@@ -1176,78 +1025,81 @@ const EMIManagement: NextPage = () => {
 
       {/* Payment Review Modal */}
       {showPaymentReviewModal && selectedPaymentReview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-2xl rounded-xl p-6 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Review Payment - EMI #{selectedPaymentReview.emi_number}
-            </h3>
-
-            {/* User Info */}
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-gray-600">User</p>
-                  <p className="font-semibold text-gray-900">
-                    {selectedPaymentReview.user_name}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Loan Type</p>
-                  <p className="font-semibold text-gray-900">
-                    {selectedPaymentReview.loan_type}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Amount</p>
-                  <p className="font-semibold text-gray-900">
-                    ₹{selectedPaymentReview.emi_amount.toLocaleString("en-IN")}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Submitted</p>
-                  <p className="font-semibold text-gray-900">
-                    {formatDate(selectedPaymentReview.payment_submitted_at)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Screenshot */}
-            <div className="mb-6">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Payment Screenshot:
-              </p>
-              <div className="border-2 border-gray-200 rounded-lg p-2 bg-gray-50">
-                <img
-                  src={selectedPaymentReview.payment_screenshot_url}
-                  alt="Payment Screenshot"
-                  className="w-full h-auto rounded"
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-[#2B3674]">
+                Review Payment - EMI #{selectedPaymentReview.emi_number}
+              </h3>
               <button
                 onClick={() => {
                   setShowPaymentReviewModal(false);
                   setSelectedPaymentReview(null);
                 }}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                className="p-1 text-[#A3AED0] hover:text-[#2B3674] hover:bg-gray-100 rounded transition-colors"
               >
-                Cancel
+                <X className="w-4 h-4" />
               </button>
+            </div>
+
+            <div className="p-4 space-y-3 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="grid grid-cols-2 gap-2 bg-gray-50 rounded-lg p-3">
+                <div>
+                  <p className="text-[9px] text-[#A3AED0] uppercase">User</p>
+                  <p className="text-xs font-medium text-[#2B3674]">
+                    {selectedPaymentReview.user_name}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-[#A3AED0] uppercase">Amount</p>
+                  <p className="text-xs font-medium text-[#2B3674]">
+                    ₹{selectedPaymentReview.emi_amount.toLocaleString("en-IN")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-[#A3AED0] uppercase">
+                    Loan Type
+                  </p>
+                  <p className="text-xs font-medium text-[#2B3674]">
+                    {selectedPaymentReview.loan_type}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-[#A3AED0] uppercase">
+                    Submitted
+                  </p>
+                  <p className="text-xs font-medium text-[#2B3674]">
+                    {formatDate(selectedPaymentReview.payment_submitted_at)}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-medium text-[#A3AED0] uppercase mb-1.5">
+                  Payment Screenshot
+                </p>
+                <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                  <img
+                    src={selectedPaymentReview.payment_screenshot_url}
+                    alt="Payment Screenshot"
+                    className="w-full h-auto"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
               <button
                 onClick={() => handleVerifyPayment(false)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors"
               >
-                ❌ Reject
+                Reject
               </button>
               <button
                 onClick={() => handleVerifyPayment(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1.5 rounded-md text-xs font-medium shadow-sm transition-colors"
               >
-                ✅ Approve
+                Approve
               </button>
             </div>
           </div>
