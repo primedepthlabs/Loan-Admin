@@ -31,6 +31,7 @@ interface AgentNode {
   agent?: {
     referral_code: string;
     is_active: boolean;
+    agent_plans?: AgentPlan[];
     user?: {
       id: string;
       name: string;
@@ -42,7 +43,14 @@ interface AgentNode {
     plan_name: string;
   };
 }
-
+interface AgentPlan {
+  plan_id: string;
+  is_active: boolean;
+  plans: {
+    id: string;
+    plan_name: string;
+  };
+}
 export default function CompactNetworkView() {
   const [allPositions, setAllPositions] = useState<AgentNode[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -70,15 +78,20 @@ export default function CompactNetworkView() {
         .from("plan_binary_positions")
         .select(
           `
-          *,
-          agent:agents!plan_binary_positions_agent_id_fkey(
-            id,
-            referral_code,
-            is_active,
-            user:users(id, name, email, mobile_number)
-          ),
-          plan:plans(id, plan_name)
-        `,
+    *,
+    agent:agents!plan_binary_positions_agent_id_fkey(
+      id,
+      referral_code,
+      is_active,
+      user:users(id, name, email, mobile_number),
+      agent_plans!inner(
+        plan_id,
+        is_active,
+        plans(id, plan_name)
+      )
+    ),
+    plan:plans(id, plan_name)
+  `,
         )
         .order("level");
 
@@ -383,11 +396,27 @@ export default function CompactNetworkView() {
                           {pos.agent?.user?.mobile_number || "-"}
                         </span>
                       </td>
+
                       <td className="px-2 py-1.5">
-                        <span className="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">
-                          {pos.plan?.plan_name || "N/A"}
-                        </span>
+                        {pos.agent?.agent_plans &&
+                        pos.agent.agent_plans.length > 0 ? (
+                          <div className="flex items-center gap-1">
+                            <span className="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">
+                              {pos.agent.agent_plans[0].plans.plan_name}
+                            </span>
+                            {pos.agent.agent_plans.length > 1 && (
+                              <span className="inline-block px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded text-[10px] font-medium">
+                                +{pos.agent.agent_plans.length - 1}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-block px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                            No plans
+                          </span>
+                        )}
                       </td>
+
                       <td className="px-2 py-1.5 text-center">
                         <span className="inline-block px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px]">
                           {pos.position}
@@ -620,9 +649,28 @@ export default function CompactNetworkView() {
                       {selectedAgent.agent?.is_active ? "Active" : "Inactive"}
                     </p>
                   </div>
-                </div>
-              </div>
-
+                </div>{" "}
+                {/* ← This closes the GRID */}
+                {/* ✅ NOW ADD "All Purchased Plans" HERE - AFTER grid, INSIDE blue container */}
+                {selectedAgent.agent?.agent_plans &&
+                  selectedAgent.agent.agent_plans.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-blue-200">
+                      <span className="text-gray-600 text-sm block mb-2">
+                        All Purchased Plans:
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedAgent.agent.agent_plans.map((ap) => (
+                          <span
+                            key={ap.plan_id}
+                            className="inline-block px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium"
+                          >
+                            {ap.plans.plan_name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+              </div>{" "}
               {/* Parent Info */}
               {(() => {
                 const parent = getParent(selectedAgent);
@@ -666,7 +714,6 @@ export default function CompactNetworkView() {
                   </div>
                 );
               })()}
-
               {/* Children Info */}
               {(() => {
                 const children = getChildren(selectedAgent);

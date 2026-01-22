@@ -165,6 +165,28 @@ export async function placeAgentInBinaryTree(
   sponsorId: string | null,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Get pairing limit FIRST
+    const { data: planSettings } = await supabase
+      .from("plan_chain_settings")
+      .select("pairing_limit")
+      .eq("plan_id", planId)
+      .single();
+
+    const pairingLimit = planSettings?.pairing_limit || 2;
+
+    // Check if agent already in this pairing system (not just this plan)
+    const { data: existingInPairing } = await supabase
+      .from("plan_binary_positions")
+      .select("id")
+      .eq("agent_id", agentId)
+      .eq("pairing_limit", pairingLimit)
+      .maybeSingle();
+
+    if (existingInPairing) {
+      console.log("✅ Agent already in pairing system - skipping placement");
+      return { success: true };
+    }
+
     // FIX 1: Check if agent already exists in this plan's tree
     const { data: existingPosition } = await supabase
       .from("plan_binary_positions")
@@ -192,14 +214,7 @@ export async function placeAgentInBinaryTree(
       };
     }
 
-    // Get pairing limit for this plan
-    const { data: planSettings } = await supabase
-      .from("plan_chain_settings")
-      .select("pairing_limit")
-      .eq("plan_id", planId)
-      .single();
-
-    const pairingLimit = planSettings?.pairing_limit || 2;
+   
 
     // Handle root placement (no sponsor)
     if (!sponsorId) {
