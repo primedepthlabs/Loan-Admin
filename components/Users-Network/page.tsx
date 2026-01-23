@@ -66,11 +66,39 @@ export default function CompactNetworkView() {
     maxLevel: 0,
     totalPlans: 0,
   });
+  const [agentCommissions, setAgentCommissions] = useState<Map<string, number>>(
+    new Map(),
+  );
+  const [currentAgentId, setCurrentAgentId] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchCurrentAgent();
     fetchAllNetwork();
   }, []);
+  async function fetchCurrentAgent() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user) return;
 
+    const { data: userData } = await supabase
+      .from("users")
+      .select("id")
+      .eq("auth_user_id", session.user.id)
+      .single();
+
+    if (!userData) return;
+
+    const { data: agentData } = await supabase
+      .from("agents")
+      .select("id")
+      .eq("user_id", userData.id)
+      .single();
+
+    if (agentData) {
+      setCurrentAgentId(agentData.id);
+    }
+  }
   async function fetchAllNetwork() {
     setLoading(true);
     try {
@@ -147,11 +175,28 @@ export default function CompactNetworkView() {
 
     return children;
   };
-
-  // Handle row click
-  const handleRowClick = (agent: AgentNode) => {
+  const handleRowClick = async (agent: AgentNode) => {
     setSelectedAgent(agent);
     setShowModal(true);
+
+    // Fetch commissions THIS AGENT has earned from THEIR children
+    if (agent.agent_id) {
+      const { data: commissionsData } = await supabase
+        .from("commissions")
+        .select("plan_id, commission_amount, plans!inner(plan_name)")
+        .eq("agent_id", agent.agent_id) // ← THIS agent's earnings
+        .in("status", ["paid", "pending"]);
+
+      // Group by plan
+      const commMap = new Map<string, number>();
+      commissionsData?.forEach((c: any) => {
+        const planName = c.plans?.plan_name || "Unknown";
+        const current = commMap.get(planName) || 0;
+        commMap.set(planName, current + Number(c.commission_amount));
+      });
+
+      setAgentCommissions(commMap);
+    }
   };
 
   const filteredPositions = useMemo(() => {
@@ -650,8 +695,6 @@ export default function CompactNetworkView() {
                     </p>
                   </div>
                 </div>{" "}
-                {/* ← This closes the GRID */}
-                {/* ✅ NOW ADD "All Purchased Plans" HERE - AFTER grid, INSIDE blue container */}
                 {selectedAgent.agent?.agent_plans &&
                   selectedAgent.agent.agent_plans.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-blue-200">
@@ -670,6 +713,42 @@ export default function CompactNetworkView() {
                       </div>
                     </div>
                   )}
+                {/* Commission Generated */}
+                {agentCommissions.size > 0 && (
+                  <div className="mt-4 pt-4 border-t border-blue-200">
+                    <span className="text-gray-600 text-sm block mb-2">
+                      Total Commissions Earned by This Agent:
+                    </span>
+                    <div className="space-y-1">
+                      {Array.from(agentCommissions.entries()).map(
+                        ([planName, amount]) => (
+                          <div
+                            key={planName}
+                            className="flex justify-between items-center bg-white rounded px-2 py-1"
+                          >
+                            <span className="text-xs text-gray-700">
+                              {planName}
+                            </span>
+                            <span className="text-xs font-bold text-green-600">
+                              ₹{amount.toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                        ),
+                      )}
+                      <div className="flex justify-between items-center bg-green-100 rounded px-2 py-1 mt-2">
+                        <span className="text-xs font-semibold text-green-900">
+                          Total:
+                        </span>
+                        <span className="text-sm font-bold text-green-700">
+                          ₹
+                          {Array.from(agentCommissions.values())
+                            .reduce((a, b) => a + b, 0)
+                            .toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>{" "}
               {/* Parent Info */}
               {(() => {
