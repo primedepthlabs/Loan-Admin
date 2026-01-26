@@ -35,7 +35,8 @@ export async function findNextAvailablePosition(
       .from("plan_binary_positions")
       .select("*")
       .eq("agent_id", sponsorId)
-      .eq("plan_id", planId)
+
+      .eq("pairing_limit", pairingLimit)
       .maybeSingle();
 
     if (!sponsorPosition) {
@@ -100,7 +101,7 @@ async function findNextAvailableInDownline(
     const { data: allPositions } = await supabase
       .from("plan_binary_positions")
       .select("*")
-      .eq("plan_id", planId)
+      .eq("pairing_limit", pairingLimit)
       .order("level", { ascending: true });
 
     if (!allPositions || allPositions.length === 0) {
@@ -214,8 +215,6 @@ export async function placeAgentInBinaryTree(
       };
     }
 
-   
-
     // Handle root placement (no sponsor)
     if (!sponsorId) {
       // FIX 1: Only allow ONE root per plan
@@ -261,28 +260,51 @@ export async function placeAgentInBinaryTree(
       return { success: true };
     }
 
-    // FIX 1: Verify sponsor owns this plan (source of truth check)
-    const { data: sponsorPlan } = await supabase
-      .from("agent_plans")
-      .select("id")
-      .eq("agent_id", sponsorId)
+    // Check if sponsor has ANY plan with same pairing_limit
+    const { data: selectedPlanSettings } = await supabase
+      .from("plan_chain_settings")
+      .select("pairing_limit")
       .eq("plan_id", planId)
-      .maybeSingle();
+      .single();
 
-    if (!sponsorPlan) {
+    const { data: sponsorPlans } = await supabase
+      .from("agent_plans")
+      .select("plan_id")
+      .eq("agent_id", sponsorId)
+      .eq("is_active", true);
+
+    if (!sponsorPlans || sponsorPlans.length === 0) {
       return {
         success: false,
-        error: "Sponsor does not own this plan",
+        error: "Sponsor has no active plans",
       };
     }
 
+    const { data: sponsorPlanSettings } = await supabase
+      .from("plan_chain_settings")
+      .select("pairing_limit")
+      .in(
+        "plan_id",
+        sponsorPlans.map((p) => p.plan_id),
+      );
+
+    const hasSamePairingLimit = sponsorPlanSettings?.some(
+      (s) => s.pairing_limit === selectedPlanSettings?.pairing_limit,
+    );
+
+    if (!hasSamePairingLimit) {
+      return {
+        success: false,
+        error: "Sponsor doesn't have a compatible plan",
+      };
+    }
     // FIX 1: Check if sponsor exists in THIS plan's tree
     // No auto-insertion - if sponsor not in tree, reject placement
     const { data: sponsorPosition } = await supabase
       .from("plan_binary_positions")
       .select("*")
       .eq("agent_id", sponsorId)
-      .eq("plan_id", planId)
+      .eq("pairing_limit", pairingLimit)
       .maybeSingle();
 
     if (!sponsorPosition) {
@@ -324,7 +346,8 @@ export async function placeAgentInBinaryTree(
       .from("plan_binary_positions")
       .update({ [updateField]: agentId })
       .eq("agent_id", parent_id!)
-      .eq("plan_id", planId);
+
+      .eq("pairing_limit", pairingLimit);
 
     if (updateError) throw updateError;
 

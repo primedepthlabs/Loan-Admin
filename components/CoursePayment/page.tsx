@@ -133,15 +133,38 @@ export default function CoursePayment() {
           .maybeSingle();
 
         if (sponsor) {
-          const { data: sponsorPlan } = await supabase
-            .from("agent_plans")
-            .select("id")
-            .eq("agent_id", sponsor.id)
+          // Check if sponsor has ANY plan with same pairing_limit
+          const { data: selectedPlanSettings } = await supabase
+            .from("plan_chain_settings")
+            .select("pairing_limit")
             .eq("plan_id", payment.plan_id)
-            .eq("is_active", true)
-            .maybeSingle();
+            .single();
 
-          if (!sponsorPlan) throw new Error("Sponsor does not own this plan");
+          const { data: sponsorPlans } = await supabase
+            .from("agent_plans")
+            .select("plan_id")
+            .eq("agent_id", sponsor.id)
+            .eq("is_active", true);
+
+          if (!sponsorPlans || sponsorPlans.length === 0) {
+            throw new Error("Sponsor has no active plans");
+          }
+
+          const { data: sponsorPlanSettings } = await supabase
+            .from("plan_chain_settings")
+            .select("pairing_limit")
+            .in(
+              "plan_id",
+              sponsorPlans.map((p) => p.plan_id),
+            );
+
+          const hasSamePairingLimit = sponsorPlanSettings?.some(
+            (s) => s.pairing_limit === selectedPlanSettings?.pairing_limit,
+          );
+
+          if (!hasSamePairingLimit) {
+            throw new Error("Sponsor doesn't have a compatible plan");
+          }
 
           sponsorId = sponsor.id;
         }
