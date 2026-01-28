@@ -217,34 +217,22 @@ export async function placeAgentInBinaryTree(
 
     // Handle root placement (no sponsor)
     if (!sponsorId) {
-      // FIX 1: Only allow ONE root per plan
+      // ✅ Check if THIS agent already has a root for THIS pairing_limit
       const { data: existingRoot } = await supabase
         .from("plan_binary_positions")
         .select("id")
-        .eq("plan_id", planId)
+        .eq("agent_id", agentId) // ← Check THIS agent
+        .eq("pairing_limit", pairingLimit) // ← Check THIS pairing limit
         .eq("position", "root")
         .maybeSingle();
 
       if (existingRoot) {
-        return {
-          success: false,
-          error: "Root already exists for this plan",
-        };
+        console.log("✅ Agent already has root in this pairing system");
+        return { success: true }; // Already has root
       }
 
-      // FIX 1: Ensure this is the only plan owner trying to become root
-      const { data: allPlanOwners } = await supabase
-        .from("agent_plans")
-        .select("agent_id")
-        .eq("plan_id", planId);
-
-      // If there are other plan owners, they should have sponsors
-      if (allPlanOwners && allPlanOwners.length > 1) {
-        return {
-          success: false,
-          error: "Cannot create root - other agents already own this plan",
-        };
-      }
+      // Get tree_owner_id (should be this agent since they're creating root)
+      const treeOwnerId = agentId;
 
       // Create root position
       const { error } = await supabase.from("plan_binary_positions").insert({
@@ -254,6 +242,7 @@ export async function placeAgentInBinaryTree(
         position: "root",
         level: 1,
         pairing_limit: pairingLimit,
+        tree_owner_id: treeOwnerId, // ← ADD THIS
       });
 
       if (error) throw error;
@@ -326,6 +315,7 @@ export async function placeAgentInBinaryTree(
 
     const { parent_id, position, level, child_slot } = placementResult.position;
 
+    const treeOwnerId = sponsorPosition.tree_owner_id;
     // Insert new position
     const { error: insertError } = await supabase
       .from("plan_binary_positions")
@@ -336,6 +326,8 @@ export async function placeAgentInBinaryTree(
         position: position,
         level: level,
         pairing_limit: pairingLimit,
+
+        tree_owner_id: treeOwnerId,
       });
 
     if (insertError) throw insertError;
