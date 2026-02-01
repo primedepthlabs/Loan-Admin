@@ -343,6 +343,15 @@ export async function placeAgentInBinaryTree(
 
     if (updateError) throw updateError;
 
+    // ✅ CHECK IF PARENT'S PAIRING IS NOW COMPLETE
+    // ✅ CHECK IF PARENT'S PAIRING IS NOW COMPLETE
+    if (parent_id && pairingLimit > 1) {
+      await checkAndReleasePairingCommissions(parent_id, pairingLimit);
+
+      // ✅ CHECK IF PARENT COMPLETED PAIRING AND UNLOCK UPLINE LOCKED AMOUNTS
+      await checkAndUnlockMaxDepthRewards(parent_id, level, pairingLimit);
+    }
+
     return { success: true };
   } catch (error) {
     console.error("Error placing agent:", error);
@@ -410,5 +419,185 @@ export async function getBinaryTreeForPlan(
   } catch (error) {
     console.error("Error getting tree:", error);
     return null;
+  }
+}
+/**
+ * Check if agent's pairing is complete and release commissions
+ */
+export async function checkAndReleasePairingCommissions(
+  parentAgentId: string,
+  pairingLimit: number,
+) {
+  try {
+    console.log(
+      `🔍 Checking pairing for agent ${parentAgentId}, limit: ${pairingLimit}`,
+    );
+
+    // Get parent's position in the tree
+    const { data: parentPosition } = await supabase
+      .from("plan_binary_positions")
+      .select("*")
+      .eq("agent_id", parentAgentId)
+      .eq("pairing_limit", pairingLimit)
+      .single();
+
+    if (!parentPosition) {
+      console.log("⚠️ Parent position not found");
+      return;
+    }
+
+    // Check if ALL direct child slots are filled
+    let filledSlots = 0;
+    for (let i = 1; i <= pairingLimit; i++) {
+      const childField = `child_${i}_id`;
+      if (parentPosition[childField]) {
+        filledSlots++;
+      }
+    }
+
+    console.log(
+      `📊 Pairing status: ${filledSlots}/${pairingLimit} slots filled`,
+    );
+
+    // If pairing is complete, release commissions
+    if (filledSlots === pairingLimit) {
+      console.log("✅ Pairing complete! Releasing commissions...");
+
+      const { data: updatedCommissions, error } = await supabase
+        .from("commissions")
+        .update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+        })
+        .eq("from_agent_id", parentAgentId)
+        .eq("status", "pending")
+        .select();
+
+      if (error) {
+        console.error("❌ Error releasing commissions:", error);
+      } else {
+        console.log(
+          `💰 Released ${updatedCommissions?.length || 0} commissions`,
+        );
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error in checkAndReleasePairingCommissions:", error);
+  }
+}
+/**
+ * Check if max_depth reached for upline agents and unlock their locked rewards
+ * Called when an agent completes their pairing
+ */
+async function checkAndUnlockMaxDepthRewards(
+  agentId: string,
+  agentLevel: number,
+  pairingLimit: number,
+) {
+  try {
+    console.log(`🔍 Checking max_depth unlock for agent ${agentId} at level ${agentLevel}`);
+
+    // Check if this agent has completed their pairing
+    const { data: agentPosition } = await supabase
+      .from("plan_binary_positions")
+      .select("*")
+      .eq("agent_id", agentId)
+      .eq("pairing_limit", pairingLimit)
+      .single();
+
+    if (!agentPosition) return;
+
+    // Count filled slots
+    let filledSlots = 0;
+    for (let i = 1; i <= pairingLimit; i++) {
+      if (agentPosition[`child_${i}_id`]) filledSlots++;
+    }
+
+    // Only proceed if this agent has completed pairing
+    if (filledSlots < pairingLimit) {
+      console.log(`⏳ Agent pairing not complete: ${filledSlots}/${pairingLimit}`);
+      return;
+    }
+
+    console.log(`✅ Agent pairing complete! Checking upline for max_depth unlock...`);
+
+    // Get all upline agents in this tree
+    const uplineAgents: string[] = [];
+    let currentParentId = agentPosition.parent_id;
+
+    while (currentParentId) {
+      uplineAgents.push(currentParentId);
+      
+      const { data: parentPos } = await supabase
+        .from("plan_binary_positions")
+        .select("parent_id")
+        .eq("agent_id", currentParentId)
+        .eq("pairing_limit", pairingLimit)
+        .single();
+
+      currentParentId = parentPos?.parent_id || null;
+    }
+
+    if (uplineAgents.length === 0) {
+      console.log("ℹ️ No upline agents found");
+      return;
+    }
+
+    console.log(`📊 Found ${uplineAgents.length} upline agents`);
+
+    // Check each upline agent's locked rewards
+    for (const uplineAgentId of uplineAgents) {
+      // Get all locked rewards for this upline agent
+      const { data: lockedRewards } = await supabase
+        .from("agent_plan_rewards")
+        .select("id, plan_id, locked_amount")
+        .eq("agent_id", uplineAgentId)
+        .eq("is_released", false);
+
+      if (!lockedRewards || lockedRewards.length === 0) continue;
+
+      // Check each locked reward
+      for (const reward of lockedRewards) {
+        // Get max_depth for this plan
+        const { data: planSettings } = await supabase
+          .from("plan_chain_settings")
+          .select("max_depth")
+          .eq("plan_id", reward.plan_id)
+          .single();
+
+        const maxDepth = planSettings?.max_depth || 50;
+
+        // If agent's level >= max_depth, unlock this reward
+        if (agentLevel >= maxDepth) {
+          console.log(`🎉 Unlocking reward for agent ${uplineAgentId} - max_depth ${maxDepth} reached at level ${agentLevel}`);
+
+          // Create commission for the locked amount
+          await supabase.from("commissions").insert({
+            agent_id: uplineAgentId,
+            from_agent_id: agentId,
+            plan_id: reward.plan_id,
+            commission_amount: reward.locked_amount,
+            original_amount: reward.locked_amount,
+            level: 0,
+            status: "paid",
+            payment_id: null,
+            paid_at: new Date().toISOString(),
+          });
+
+          // Mark reward as released
+          await supabase
+            .from("agent_plan_rewards")
+            .update({
+              is_released: true,
+              released_at: new Date().toISOString(),
+            })
+            .eq("id", reward.id);
+
+          console.log(`💰 Released ₹${reward.locked_amount} for agent ${uplineAgentId}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error in checkAndUnlockMaxDepthRewards:", error);
   }
 }

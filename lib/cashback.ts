@@ -20,8 +20,14 @@ export async function grantInstantCashback(
       return { success: true, message: "Cashback already granted" };
     }
 
-    // 2. Calculate cashback
-    const cashbackPercentage = 20;
+    // 2. Get cashback percentage from plan
+    const { data: plan } = await supabase
+      .from("plans")
+      .select("cashback_percentage")
+      .eq("id", planId)
+      .single();
+
+    const cashbackPercentage = plan?.cashback_percentage || 20;
     const cashbackAmount = Math.round(paymentAmount * cashbackPercentage) / 100;
 
     // 3. Insert cashback
@@ -35,47 +41,9 @@ export async function grantInstantCashback(
       status: "credited",
     });
 
-    // 4. Get plan limit from chain settings (MAX DEPTH)
-    const { data: chain } = await supabase
-      .from("plan_chain_settings")
-      .select("max_depth")
-      .eq("plan_id", planId)
-      .single();
-
-    const planLimit = chain?.max_depth || 50;
-
-    // 5. ✅ UPDATE existing reward row (trigger already created it)
-    // Don't try to insert - just update
-    const { data: reward } = await supabase
-      .from("agent_plan_rewards")
-      .select("id, pairing_completed")
-      .eq("agent_id", agentId)
-      .eq("plan_id", planId)
-      .maybeSingle();
-
-    if (reward) {
-      const newCompleted = (reward.pairing_completed || 0) + 1;
-      const shouldUnlock = newCompleted >= planLimit;
-
-      await supabase
-        .from("agent_plan_rewards")
-        .update({
-          pairing_completed: newCompleted,
-          pairing_limit: planLimit,
-          is_released: shouldUnlock,
-          released_at: shouldUnlock ? new Date().toISOString() : null,
-        })
-        .eq("id", reward.id);
-    } else {
-      // This shouldn't happen since trigger creates it, but log if it does
-      console.warn(
-        "⚠️ agent_plan_rewards record not found - trigger may have failed",
-      );
-    }
-
     return {
       success: true,
-      message: `₹${cashbackAmount} cashback credited`,
+      message: `₹${cashbackAmount} cashback credited (${cashbackPercentage}%)`,
     };
   } catch (error) {
     console.error("Cashback grant error:", error);

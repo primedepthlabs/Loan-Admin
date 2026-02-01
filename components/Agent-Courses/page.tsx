@@ -23,6 +23,7 @@ interface Plan {
   plan_name: string;
   plan_name_hindi: string | null;
   amount: number;
+  cashback_percentage: number;
   features: string[];
   is_active: boolean;
   created_at: string;
@@ -45,7 +46,7 @@ const PlanCreation = () => {
   const [features, setFeatures] = useState<PlanFeature[]>([
     { id: "1", text: "" },
   ]);
-
+  const [cashbackPercentage, setCashbackPercentage] = useState("20");
   const addFeature = () => {
     setFeatures([...features, { id: Date.now().toString(), text: "" }]);
   };
@@ -87,6 +88,7 @@ const PlanCreation = () => {
     setPlanName("");
     setPlanNameHindi("");
     setAmount("");
+    setCashbackPercentage("20");
     setFeatures([{ id: "1", text: "" }]);
     setEditingPlanId(null);
   };
@@ -95,11 +97,12 @@ const PlanCreation = () => {
     setPlanName(plan.plan_name);
     setPlanNameHindi(plan.plan_name_hindi || "");
     setAmount(plan.amount.toString());
+    setCashbackPercentage(plan.cashback_percentage?.toString() || "20");
     setFeatures(
       plan.features.map((f, i) => ({
         id: i.toString(),
         text: f,
-      }))
+      })),
     );
     setEditingPlanId(plan.id);
     setShowForm(true);
@@ -122,7 +125,14 @@ const PlanCreation = () => {
       setError("Valid amount is required");
       return;
     }
-
+    if (
+      !cashbackPercentage ||
+      parseFloat(cashbackPercentage) < 0 ||
+      parseFloat(cashbackPercentage) > 100
+    ) {
+      setError("Cashback percentage must be between 0 and 100");
+      return;
+    }
     const validFeatures = features.filter((f) => f.text.trim() !== "");
     if (validFeatures.length === 0) {
       setError("At least one feature is required");
@@ -140,6 +150,7 @@ const PlanCreation = () => {
             plan_name: planName.trim(),
             plan_name_hindi: planNameHindi.trim() || null,
             amount: parseFloat(amount),
+            cashback_percentage: parseFloat(cashbackPercentage),
             features: validFeatures.map((f) => f.text.trim()),
           })
           .eq("id", editingPlanId);
@@ -155,6 +166,7 @@ const PlanCreation = () => {
               plan_name: planName.trim(),
               plan_name_hindi: planNameHindi.trim() || null,
               amount: parseFloat(amount),
+              cashback_percentage: parseFloat(cashbackPercentage),
               features: validFeatures.map((f) => f.text.trim()),
               is_active: true,
               created_at: new Date().toISOString(),
@@ -305,7 +317,27 @@ const PlanCreation = () => {
                   disabled={isSubmitting}
                 />
               </div>
-
+              {/* Cashback Percentage */}
+              <div className="mb-4">
+                <label className="block text-xs font-bold text-[#2B3674] uppercase mb-1.5">
+                  Instant Cashback (%) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={cashbackPercentage}
+                  onChange={(e) => setCashbackPercentage(e.target.value)}
+                  placeholder="e.g., 20"
+                  min="0"
+                  max="100"
+                  step="1"
+                  className="w-full px-3 py-2.5 border border-gray-200 text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all text-[#2B3674]"
+                  disabled={isSubmitting}
+                />
+                <p className="text-xs text-[#A3AED0] mt-1">
+                  Locked amount will be:{" "}
+                  {100 - parseFloat(cashbackPercentage || "0")}%
+                </p>
+              </div>
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-xs font-bold text-[#2B3674] uppercase">
@@ -399,7 +431,9 @@ const PlanCreation = () => {
           {isLoadingPlans ? (
             <div className="py-12 text-center">
               <div className="w-8 h-8 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-sm text-[#A3AED0] font-medium">Loading plans...</p>
+              <p className="text-sm text-[#A3AED0] font-medium">
+                Loading plans...
+              </p>
             </div>
           ) : plans.length === 0 ? (
             <div className="bg-white shadow-sm border-l-4 border-[#03A9F4] py-12 text-center">
@@ -442,6 +476,14 @@ const PlanCreation = () => {
                         ₹{plan.amount.toLocaleString("en-IN")}
                       </span>
                     </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="px-2 py-1 bg-green-400 text-green-900 text-xs font-bold">
+                        {plan.cashback_percentage}% Instant
+                      </span>
+                      <span className="px-2 py-1 bg-yellow-400 text-yellow-900 text-xs font-bold">
+                        {100 - plan.cashback_percentage}% Locked
+                      </span>
+                    </div>
                   </div>
 
                   {/* Card Body */}
@@ -461,7 +503,9 @@ const PlanCreation = () => {
                               <div className="w-5 h-5 bg-[#F4F7FE] flex items-center justify-center flex-shrink-0 mt-0.5">
                                 <div className="w-1.5 h-1.5 bg-[#03A9F4]"></div>
                               </div>
-                              <span className="flex-1 text-[#2B3674]">{feature}</span>
+                              <span className="flex-1 text-[#2B3674]">
+                                {feature}
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -479,7 +523,7 @@ const PlanCreation = () => {
                               day: "2-digit",
                               month: "short",
                               year: "numeric",
-                            }
+                            },
                           )}
                         </span>
                       </p>

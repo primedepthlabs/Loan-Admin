@@ -17,7 +17,7 @@ export async function calculateCommissions(
   paymentId: string,
   purchaserAgentId: string,
   planId: string,
-  planAmount: number
+  planAmount: number,
 ): Promise<CommissionResult> {
   try {
     // Get purchaser's sponsor chain
@@ -35,20 +35,24 @@ export async function calculateCommissions(
       };
     }
 
-    // Get max_depth from plan settings
+    // Get max_depth and pairing_limit from plan settings
     const { data: planSettings } = await supabase
       .from("plan_chain_settings")
-      .select("max_depth")
+      .select("max_depth, pairing_limit")
       .eq("plan_id", planId)
       .single();
 
-    const maxDepth = planSettings?.max_depth || 10;
+    const pairingLimit = planSettings?.pairing_limit || 1;
+
+    // ✅ If pairing_limit = 1, commissions go only 1 level up
+    // Otherwise, use max_depth
+    const maxDepth = pairingLimit === 1 ? 1 : planSettings?.max_depth || 10;
 
     // Build sponsor chain up to max_depth
     const sponsorChain = await buildSponsorChain(
       purchaserAgent.sponsor_id,
       planId,
-      maxDepth
+      maxDepth,
     );
 
     if (sponsorChain.length === 0) {
@@ -83,6 +87,16 @@ export async function calculateCommissions(
       // Deduct from remaining
       remainingAmount -= commissionAmount;
 
+      // ✅ Check pairing_limit to determine initial status
+      const { data: planChainSettings } = await supabase
+        .from("plan_chain_settings")
+        .select("pairing_limit")
+        .eq("plan_id", planId)
+        .single();
+
+      const pairingLimit = planChainSettings?.pairing_limit || 1;
+      const initialStatus = pairingLimit > 1 ? "pending" : "paid";
+
       commissions.push({
         agent_id: sponsorId,
         from_agent_id: purchaserAgentId,
@@ -91,8 +105,8 @@ export async function calculateCommissions(
         original_amount: planAmount,
         level: level,
         payment_id: paymentId,
-        status: "paid",
-        paid_at: new Date().toISOString(),
+        status: initialStatus, // ← "pending" if pairing_limit > 1, else "paid"
+        paid_at: initialStatus === "paid" ? new Date().toISOString() : null,
       });
     }
 
@@ -126,7 +140,7 @@ export async function calculateCommissions(
 async function buildSponsorChain(
   startSponsorId: string,
   planId: string,
-  maxDepth: number
+  maxDepth: number,
 ): Promise<string[]> {
   const chain: string[] = [];
   let currentSponsorId: string | null = startSponsorId;
@@ -176,7 +190,7 @@ export async function updateAgentCommissionTotals(agentId: string) {
 
     const totalEarnings = commissions.reduce(
       (sum, c) => sum + Number(c.commission_amount),
-      0
+      0,
     );
 
     const paidEarnings = commissions

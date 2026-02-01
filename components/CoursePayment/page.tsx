@@ -287,10 +287,18 @@ export default function CoursePayment() {
       if (!cashbackResult.success) {
         console.error("Cashback error:", cashbackResult.message);
       }
-      //
       // 8. ✅ UPDATE LOCKED AMOUNT IN REWARD TABLE
-      // The trigger already created the record with plan.amount * 0.8
-      // Now update it with actual payment_amount * 0.8
+      // Calculate locked amount based on plan's cashback percentage
+      const { data: planData } = await supabase
+        .from("plans")
+        .select("cashback_percentage")
+        .eq("id", payment.plan_id)
+        .single();
+
+      const cashbackPercentage = planData?.cashback_percentage || 20;
+      const lockedPercentage = 100 - cashbackPercentage;
+      const lockedAmount = (payment.payment_amount * lockedPercentage) / 100;
+
       const { data: planSettings } = await supabase
         .from("plan_chain_settings")
         .select("pairing_limit")
@@ -302,7 +310,7 @@ export default function CoursePayment() {
       const { error: rewardUpdateError } = await supabase
         .from("agent_plan_rewards")
         .update({
-          locked_amount: payment.payment_amount * 0.8,
+          locked_amount: lockedAmount,
           pairing_limit: pairingLimit,
         })
         .eq("agent_id", agentId)
